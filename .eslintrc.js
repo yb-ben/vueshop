@@ -38,10 +38,10 @@ module.exports = {
       'properties': 'always'
     }],
     'comma-dangle': [2, 'never'],
-    'comma-spacing': [2, {
-      'before': false,
-      'after': true
-    }],
+    // 'comma-spacing': [2, {
+    //   'before': false,
+    //   'after': true
+    // }],
     'comma-style': [2, 'last'],
     'constructor-super': 2,
     'curly': [2, 'multi-line'],
