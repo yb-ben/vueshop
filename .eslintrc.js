@@ -31,13 +31,13 @@ module.exports = {
     //   'after': true
     // }],
     'block-spacing': [2, 'always'],
-    'brace-style': [2, '1tbs', {
-      'allowSingleLine': true
-    }],
+    // //'brace-style': [2, '1tbs', {
+    //   'allowSingleLine': true
+    // }],
     'camelcase': [0, {
       'properties': 'always'
     }],
-    'comma-dangle': [2, 'never'],
+   // 'comma-dangle': [2, 'never'],
     // 'comma-spacing': [2, {
     //   'before': false,
     //   'after': true
@@ -105,7 +105,7 @@ module.exports = {
     }],
     'no-lone-blocks': 2,
     'no-mixed-spaces-and-tabs': 2,
-    'no-multi-spaces': 2,
+    //'no-multi-spaces': 2,
     'no-multi-str': 2,
     // 'no-multiple-empty-lines': [2, {
     //   'max': 1
@@ -161,7 +161,7 @@ module.exports = {
         ':': 'before'
       }
     }],
-    'padded-blocks': [2, 'never'],
+    //'padded-blocks': [2, 'never'],
     // 'quotes': [2, 'single', {
     //   'avoidEscape': true,
     //   'allowTemplateLiterals': true
