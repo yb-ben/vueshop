@@ -22,7 +22,12 @@ export default [
                             {
                               id: 9,
                               sort:10000,
-                              name: "Level three 1-1-1"
+                              name: "Level three 1-1-1",
+                              attr:[
+                                { id:1,name:"颜色"}
+                                ,{id:2,name:"尺寸"}
+                                ,{id:3,name:"品牌"}
+                              ]
                             },
                             {
                               id: 10,

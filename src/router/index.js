@@ -110,7 +110,8 @@ export const constantRoutes = [
             path: 'menu1-1',
             component: () => import('@/views/nested/menu1/menu1-1'),
             name: 'Menu1-1',
-            meta: { title: 'Menu1-1' }
+            meta: { title: 'Menu1-1' },
+            hidden:true
           },
           {
             path: 'menu1-2',
@@ -175,13 +176,26 @@ export const constantRoutes = [
   {
     path: '/goods',
     component: Layout,
+    redirect: '/goods/index',
+    meta:{title: '商品管理', icon: 'form' },    
     children: [
       {
         path: 'index',
         name: 'Goods',
         component:() => import('@/views/goods/index'),
-        meta:{title: '商品管理', icon: 'form' }
+        meta:{title: '商品列表', icon: 'form' }, 
+       
+      },
+      {
+        path:'add',
+        name:'AddGoods',
+        component:()=>import('@/views/goods/add'),
+        hidden:true,
+        meta:{title:'添加商品'}
       }
+
+     
+    
     ]
   },
 
