@@ -23,3 +23,13 @@ export  function find(arr,checker){
         });
         return res;
     }
+
+
+export function combine($arrs,str= '',pos = 0,){
+    let len = $arrs.length;
+    if(pos === len-1){
+        return str;
+    }
+    
+    return combine($arrs,str,pos++)
+}

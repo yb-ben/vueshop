@@ -14,7 +14,7 @@
       <el-option v-for="item in second" :key="item.id" :label="item.name" :value="item.id"></el-option>
     </el-select>
 
-    <el-select clearable v-model="currThirdId" placeholder="请选择三级分类" v-show="third.length > 0">
+    <el-select clearable @clear="onThirdCateClear" v-model="currThirdId" placeholder="请选择三级分类" v-show="third.length > 0" @change="onThirdCateChange">
       <el-option v-for="item in third" :key="item.id" :label="item.name" :value="item.id"></el-option>
     </el-select>
   </el-form-item>
@@ -35,7 +35,7 @@ export default {
       currSecondId: "",
       currThirdId: "",
       formLabelWidth: "120px",
-    
+      postCid:""
     };
   },
 
@@ -44,6 +44,12 @@ export default {
     this.loadData();
   },
 
+
+  watch:{
+    postCid(){
+      this.sendMsg();
+    }
+  },
  
 
   methods: {
@@ -64,11 +70,12 @@ export default {
           if (value.children && value.children.length > 0) {
             this.second = value.children;
             this.currSecondId = value.children[0].id;
-
             this.onSecondCateChange(this.currSecondId);
           } else {
             this.second = [];
+            this.postCid = this.currFirstId;
           }
+          return;
         }
       });
     },
@@ -79,11 +86,17 @@ export default {
           if (value.children && value.children.length > 0) {
             this.third = value.children;
             this.currThirdId = value.children[0].id;
+            this.onThirdCateChange(this.currThirdId);
           } else {
             this.third = [];
+            this.postCid = this.currSecondId;
           }
         }
       });
+    },
+
+    onThirdCateChange(val){
+      this.postCid = this.currThirdId;
     },
 
     onFirstCateClear() {
@@ -92,14 +105,23 @@ export default {
 
       this.currThirdId = "";
       this.third = [];
+
+      this.postCid = "";
     },
     onSecondCateClear() {
       this.currThirdId = "";
       this.third = [];
+
+      this.postCid = this.currFirstId;
+    },
+
+    onThirdCateClear(){
+      this.postCid = this.currSecondId;
     },
 
     sendMsg() {
-      this.$emit("getCateFormValue", this.postCid);
+      console.log(this.postCid);
+      this.$emit("event1", this.postCid);
     }
   }
 };

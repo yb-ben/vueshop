@@ -87,5 +87,26 @@ export default [
           msg: ''
         }
       }
+    },
+
+
+    {
+      url:'/vue-admin-template/cate/attrs',
+      type:'get',
+      response: config=>{
+        
+        return {
+          code: 0,
+          data:[
+            {
+              id:1,
+              name:'颜色',
+
+            },
+            {id:2,name:'尺寸'}
+          ],
+          msg:''
+        }
+      }
     }
 ]

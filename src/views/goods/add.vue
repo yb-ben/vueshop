@@ -38,27 +38,52 @@
             </el-dialog>
           </el-form-item>
 
-          <cateSelecter></cateSelecter>
+          <cateSelecter @event1="onPostCid"></cateSelecter>
 
-          <el-form-item>
+          <el-form-item v-for="(item,index) in cateAttrs" :key="item.id" :label="item.name" :label-width="formLabelWidth">
             <el-tag
               :key="tag"
-              v-for="tag in dynamicTags"
+              v-for="tag in item.values"
               closable
               :disable-transitions="false"
-              @close="handleClose(tag)"
+              @close="handleClose(item,tag)"
             >{{tag}}</el-tag>
-            
+
             <el-input
               class="input-new-tag"
-              v-if="inputVisible"
-              v-model="inputValue"
-              ref="saveTagInput"
+              v-if="cateAttrs[index].inputVisible"
+              v-model="cateAttrs[index].inputValue"
+              :ref="'saveTagInput'+item.id"
               size="small"
-              @keyup.enter.native="handleInputConfirm"
-              @blur="handleInputConfirm"
+              @keyup.enter.native="handleInputConfirm(item)"
+              @blur="handleInputConfirm(item)"
             ></el-input>
-            <el-button v-else class="button-new-tag" size="small" @click="showInput">+ New Tag</el-button>
+            <el-button v-else class="button-new-tag" size="small" @click="showInput(item)">+ New Tag</el-button>
+          </el-form-item>
+
+          <el-form-item label="SKU" :label-width="formLabelWidth">
+            <el-table :data="sku">
+              <el-table-column label="属性">
+                <template v-slot="scope">
+                  {{ scope.row.attr_name }}
+                </template>
+              </el-table-column>
+              <el-table-column label="价格">
+                <template>
+                  <el-input></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="划线价格">
+                  <template>
+                  <el-input></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="库存">
+                  <template>
+                  <el-input></el-input>
+                </template>
+              </el-table-column>
+            </el-table>
           </el-form-item>
         </el-form>
       </el-main>
@@ -68,6 +93,8 @@
 
 <script>
 import cateSelecter from "@/views/cate/cateSelecter";
+import { getAttrs } from "@/api/cate";
+
 //主图
 const mImgHandler = {
   handleRemove(file, fileList) {
@@ -98,24 +125,36 @@ const mainImgHandler = {
 };
 //属性值
 const attrVal = {
-  handleClose(tag) {
-    this.dynamicTags.splice(this.dynamicTags.indexOf(tag), 1);
+  handleClose(target, tag) {
+    target.values.splice(target.values.indexOf(tag),1);
+    this.$forceUpdate();
+    //this.$delete(target.values,target.values.indexOf(tag));
   },
 
-  showInput() {
-    this.inputVisible = true;
+  showInput(target) {
+   
+    this.$set(target, "inputVisible", true);
+
     this.$nextTick(_ => {
-      this.$refs.saveTagInput.$refs.input.focus();
+      this.$refs["saveTagInput" + target.id][0].$refs.input.focus();
     });
   },
 
-  handleInputConfirm() {
-    let inputValue = this.inputValue;
+  handleInputConfirm(item) {
+     console.log(item);
+    let inputValue = item.inputValue;
     if (inputValue) {
-      this.dynamicTags.push(inputValue);
+      if (!item.values) {
+        item.values = [];
+      }
+      if(-1 === item.values.indexOf(inputValue)){
+        item.values.push(inputValue);
+      }else{
+        return false;
+      }
     }
-    this.inputVisible = false;
-    this.inputValue = "";
+    item.inputVisible = false;
+    item.inputValue = "";
   }
 };
 
@@ -134,16 +173,44 @@ export default {
       dynamicTags: ["标签一", "标签二", "标签三"],
       inputVisible: false,
       inputValue: "",
+      cateAttrs: [],
+
+      sku: [
+        { attr_name: "红-大", price: "100", line_price: "200", count: 2000 },
+        { attr_name: "黑-大", price: "100", line_price: "200", count: 2000 },
+        { attr_name: "红-小", price: "100", line_price: "200", count: 2000 },
+        { attr_name: "黑-小", price: "100", line_price: "200", count: 2000 }
+      ],
       form: {
-        title: ""
+        title: "",
+        cateId: ""
       }
     };
+  },
+
+  watch:{
+
+    cateAttrs(){
+        let allAttrs = [];
+        this.cateAttrs.forEach((val,index)=>{
+            
+        });
+    }
   },
 
   methods: {
     ...mainImgHandler,
     ...mImgHandler,
-    ...attrVal
+    ...attrVal,
+    onPostCid(val) {
+      this.cateId = val;
+
+      getAttrs({ cateId: this.cateId })
+        .then(resp => {
+          this.cateAttrs = resp.data;
+        })
+        .catch(err => {});
+    }
   }
 };
 </script>

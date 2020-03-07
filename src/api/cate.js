@@ -20,3 +20,13 @@ export function addCate(data,params){
     params    
   })
 }
+
+
+export function getAttrs(params){
+
+  return request({
+    url:'/vue-admin-template/cate/attrs',
+    method:'get',
+    params
+  });
+}
