@@ -14,10 +14,11 @@
           <el-form-item label="封面图" :label-width="formLabelWidth">
             <el-upload
               class="avatar-uploader"
-              action="https://jsonplaceholder.typicode.com/posts/"
+              :action="uploadImageUrl"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload"
+             
             >
               <img v-if="imageUrl" :src="imageUrl" class="avatar" />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -26,21 +27,31 @@
 
           <el-form-item label="图集" :label-width="formLabelWidth">
             <el-upload
-              action="https://jsonplaceholder.typicode.com/posts/"
+              :action="uploadImageUrl"
               list-type="picture-card"
               :on-preview="handlePictureCardPreview"
               :on-remove="handleRemove"
+              :on-success="handleSucess"
+              :auto-upload="false"
+              :limit="9"
+               ref="mImage"
             >
               <i class="el-icon-plus"></i>
             </el-upload>
             <el-dialog :visible.sync="dialogVisible">
               <img width="100%" :src="dialogImageUrl" alt />
             </el-dialog>
+            <el-button @click="handleAddImage">上传</el-button>
           </el-form-item>
 
           <cateSelecter @event1="onPostCid"></cateSelecter>
 
-          <el-form-item v-for="(item,index) in cateAttrs" :key="item.id" :label="item.name" :label-width="formLabelWidth">
+          <el-form-item
+            v-for="(item,index) in cateAttrs"
+            :key="item.id"
+            :label="item.name"
+            :label-width="formLabelWidth"
+          >
             <el-tag
               :key="tag"
               v-for="tag in item.values"
@@ -61,30 +72,62 @@
             <el-button v-else class="button-new-tag" size="small" @click="showInput(item)">+ New Tag</el-button>
           </el-form-item>
 
-          <el-form-item label="SKU" :label-width="formLabelWidth">
+          <el-form-item
+            label="SKU"
+            :label-width="formLabelWidth"
+            v-if="cateAttrs && cateAttrs.length>0"
+          >
             <el-table :data="sku">
               <el-table-column label="属性">
                 <template v-slot="scope">
-                  {{ scope.row.attr_name }}
+                  <el-select
+                    v-for="i in cateAttrs"
+                    :key="i.id"
+                    v-model="scope.row[i.id]"
+                    style="width:120px;margin-right:5px"
+                    :placeholder="i.name"
+                    @change="specAttrChange(scope.row)"
+                  >
+                    <el-option v-for="v in i.values" :label="v" :value="v" :key="v"></el-option>
+                  </el-select>
                 </template>
               </el-table-column>
-              <el-table-column label="价格">
-                <template>
-                  <el-input></el-input>
+              <el-table-column label="价格" width="150">
+                <template v-slot="scope">
+                  <el-input v-model="scope.row.price"></el-input>
                 </template>
               </el-table-column>
-              <el-table-column label="划线价格">
-                  <template>
-                  <el-input></el-input>
+              <el-table-column label="划线价格" width="150">
+                <template v-slot="scope">
+                  <el-input v-model="scope.row.line_price"></el-input>
                 </template>
               </el-table-column>
-              <el-table-column label="库存">
-                  <template>
-                  <el-input></el-input>
+              <el-table-column label="库存" width="150">
+                <template v-slot="scope">
+                  <el-input v-model="scope.row.count"></el-input>
+                </template>
+              </el-table-column>
+
+              <el-table-column width="150">
+                <template v-slot="scope">
+                  <el-button @click="delSpec(scope.$index)" type="danger">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
+            <el-button class="addSpecBtn" @click="addSpec" type="primary">
+              <div class="add"></div>
+            </el-button>
           </el-form-item>
+
+          <el-form-item label="商品详情" :label-width="formLabelWidth">
+               <tinymce v-model="content" :height="300" />
+          </el-form-item>
+
+          <el-form-item label=" " :label-width="formLabelWidth">
+            <el-button type="primary" @click="submitForm">提交</el-button>
+          </el-form-item>
+
+          
         </el-form>
       </el-main>
     </el-container>
@@ -94,23 +137,21 @@
 <script>
 import cateSelecter from "@/views/cate/cateSelecter";
 import { getAttrs } from "@/api/cate";
-
+import {addGoods} from "@/api/goods";
+import {uploadImageUrl} from "@/api/upload";
+import Tinymce from '@/components/Tinymce';
 //主图
 const mImgHandler = {
-  handleRemove(file, fileList) {
-    console.log(file, fileList);
-  },
-  handlePictureCardPreview(file) {
-    this.dialogImageUrl = file.url;
-    this.dialogVisible = true;
-  }
-};
-//图集
-const mainImgHandler = {
-  handleAvatarSuccess(res, file) {
+  
+ handleAvatarSuccess(res, file) {
+   console.log(res);
+   if(res.code !== 0){
+     return false;
+   }
+   this.main_image = res.data.path;
     this.imageUrl = URL.createObjectURL(file.raw);
   },
-  beforeAvatarUpload(file) {
+   beforeAvatarUpload(file) {
     const isJPG = file.type === "image/jpeg";
     const isLt2M = file.size / 1024 / 1024 < 2;
 
@@ -123,16 +164,40 @@ const mainImgHandler = {
     return isJPG && isLt2M;
   }
 };
+//图集
+const mainImgHandler = {
+  handleRemove(file, fileList) {
+    console.log(file, fileList);
+  },
+   handlePictureCardPreview(file) {
+     console.log(file);
+    this.dialogImageUrl = file.url;
+    this.dialogVisible = true;
+  },
+
+  handleSucess(res,file){
+    console.log(res,file);
+    if(res.code !== 0){
+      return false;
+    }
+    this.mImage.push(res.data.path);
+  },
+
+  handleAddImage(file,fileList){
+    this.$refs.mImage.submit()
+  }
+ 
+};
 //属性值
 const attrVal = {
   handleClose(target, tag) {
-    target.values.splice(target.values.indexOf(tag),1);
+    target.values.splice(target.values.indexOf(tag), 1);
+    this.sku = [{}];
     this.$forceUpdate();
     //this.$delete(target.values,target.values.indexOf(tag));
   },
 
   showInput(target) {
-   
     this.$set(target, "inputVisible", true);
 
     this.$nextTick(_ => {
@@ -141,15 +206,15 @@ const attrVal = {
   },
 
   handleInputConfirm(item) {
-     console.log(item);
+    console.log(item);
     let inputValue = item.inputValue;
     if (inputValue) {
       if (!item.values) {
         item.values = [];
       }
-      if(-1 === item.values.indexOf(inputValue)){
+      if (-1 === item.values.indexOf(inputValue)) {
         item.values.push(inputValue);
-      }else{
+      } else {
         return false;
       }
     }
@@ -161,7 +226,7 @@ const attrVal = {
 export default {
   name: "AddGoods",
   components: {
-    cateSelecter
+    cateSelecter,Tinymce
   },
   data() {
     return {
@@ -169,32 +234,36 @@ export default {
       imageUrl: "",
       dialogImageUrl: "",
       dialogVisible: false,
-
-      dynamicTags: ["标签一", "标签二", "标签三"],
+      uploadImageUrl,
+      mImage:[],
       inputVisible: false,
       inputValue: "",
       cateAttrs: [],
-
+      content:"",
       sku: [
-        { attr_name: "红-大", price: "100", line_price: "200", count: 2000 },
-        { attr_name: "黑-大", price: "100", line_price: "200", count: 2000 },
-        { attr_name: "红-小", price: "100", line_price: "200", count: 2000 },
-        { attr_name: "黑-小", price: "100", line_price: "200", count: 2000 }
+        {}
       ],
+      main_image:"",
       form: {
         title: "",
-        cateId: ""
+        cateId: "",
+        
       }
     };
   },
 
-  watch:{
+  watch: {
+    cateAttrs() {
+      let allAttrs = [];
+      this.cateAttrs.forEach((val, index) => {});
+    }
+  },
 
-    cateAttrs(){
-        let allAttrs = [];
-        this.cateAttrs.forEach((val,index)=>{
-            
-        });
+  computed: {
+    attrLabel() {
+      return this.cateAttrs.reduce(function(total, curr) {
+        return total + " " + curr.name;
+      }, "");
     }
   },
 
@@ -204,12 +273,55 @@ export default {
     ...attrVal,
     onPostCid(val) {
       this.cateId = val;
+      this.sku = [{}];
+      if (!val) {
+        this.cateAttrs = [];
+      } else {
+        getAttrs({ cateId: this.cateId })
+          .then(resp => {
+            resp.data.forEach(v => {
+              v.values = [];
+            });
+            this.cateAttrs = resp.data;
+          })
+          .catch(err => {});
+      }
+    },
 
-      getAttrs({ cateId: this.cateId })
-        .then(resp => {
-          this.cateAttrs = resp.data;
-        })
-        .catch(err => {});
+    //添加规格项
+    addSpec() {
+      this.sku.push({});
+    },
+
+    //规格修改
+    specAttrChange(v) {
+      console.log(v);
+    },
+
+    //删除规格
+    delSpec(i) {
+      console.log(i);
+      this.$delete(this.sku, i);
+    },
+
+   
+
+    //提交表单
+    submitForm(){
+
+      addGoods({
+        'title':this.form.title,
+        'main_image':this.main_image,
+        'dialogImageUrl':this.dialogImageUrl,
+        'cateId' : this.form.cateId,
+        'cateAttrs': this.cateAttrs,
+        'sku': this.sku,
+        'content':this.content
+      }).then(resp=>{
+
+      }).catch(err=>{
+
+      });
     }
   }
 };
@@ -256,5 +368,41 @@ export default {
   width: 90px;
   margin-left: 10px;
   vertical-align: bottom;
+}
+
+.addSpecBtn {
+  width: 100%;
+  margin-top: 15px;
+  text-align: center;
+  padding: 5px;
+}
+.add {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  transition: color 0.25s;
+  position: relative;
+}
+
+.add::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 20px;
+  margin-left: -10px;
+  margin-top: -2px;
+  border-top: 5px solid;
+}
+
+.add::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 20px;
+  margin-left: -2px;
+  margin-top: -10px;
+  border-left: 5px solid;
 }
 </style>
