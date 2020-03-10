@@ -32,6 +32,7 @@
               :on-preview="handlePictureCardPreview"
               :on-remove="handleRemove"
               :on-success="handleSucess"
+              :on-change="handleSelectImage"
               :auto-upload="false"
               :limit="9"
                ref="mImage"
@@ -185,6 +186,10 @@ const mainImgHandler = {
 
   handleAddImage(file,fileList){
     this.$refs.mImage.submit()
+  },
+
+  handleSelectImage(file,fileList){
+    console.log(file,fileList);
   }
  
 };
