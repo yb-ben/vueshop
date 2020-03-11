@@ -11,6 +11,18 @@
             <el-input v-model="form.title" autocomplete="off"></el-input>
           </el-form-item>
 
+          <el-form-item label="价格" :label-width="formLabelWidth">
+            <el-input v-model="price" autocomplete="off"></el-input>
+          </el-form-item>
+
+          <el-form-item label="划线价格" :label-width="formLabelWidth">
+            <el-input v-model="line_price" autocomplete="off"></el-input>
+          </el-form-item>
+
+          <el-form-item label="库存" :label-width="formLabelWidth">
+            <el-input v-model="count" autocomplete="off"></el-input>
+          </el-form-item>
+
           <el-form-item label="封面图" :label-width="formLabelWidth">
             <el-upload
               class="avatar-uploader"
@@ -248,10 +260,13 @@ export default {
       sku: [
         {}
       ],
+      cateId:0,
+      price:0,
+      line_price:0,
+      count:0,
       main_image:"",
       form: {
         title: "",
-        cateId: "",
         
       }
     };
@@ -282,7 +297,7 @@ export default {
       if (!val) {
         this.cateAttrs = [];
       } else {
-        getAttrs({ cateId: this.cateId })
+        getAttrs( this.cateId )
           .then(resp => {
             resp.data.forEach(v => {
               v.values = [];
@@ -313,17 +328,32 @@ export default {
 
     //提交表单
     submitForm(){
-
-      addGoods({
+      let d = {
         'title':this.form.title,
         'main_image':this.main_image,
-        'dialogImageUrl':this.dialogImageUrl,
-        'cateId' : this.form.cateId,
-        'cateAttrs': this.cateAttrs,
+        'mImage':this.mImage,
+        'cate_id' : this.cateId,
+        'attrValues': this.cateAttrs,
         'sku': this.sku,
         'content':this.content
-      }).then(resp=>{
-
+      };
+      let t = [];
+      d.sku.forEach(function(v){
+         if( Object.keys(v).length !== 0){
+           t.push(v);
+         }
+      });
+      d.sku = t;
+      addGoods(d).then(resp=>{
+        if(resp.code === 0){
+          this.$message({
+            message: '添加成功',
+            type: 'success',
+            onClose:()=>{
+              this.$router.push('/goods/index');
+            }
+          });
+        }
       }).catch(err=>{
 
       });

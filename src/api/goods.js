@@ -6,10 +6,27 @@ export function addGoods(data,params){
 
   return request({
     
-    url:'/vue-admin-template/goods/add',
+    url:'http://shop.com/api/v1/admin/goods/add',
     method: 'post',
     data,
     params    
   })
 }
+
+
+
+export function goodsList(params){
+
+  return request({
+    //url:'/vue-admin-template/goods/list',
+    url:'http://shop.com/api/v1/admin/goods/list',
+    method: 'get',
+    params    
+  })
+}
+
+
+
+
+
 

@@ -2,8 +2,8 @@ import request from '@/utils/request'
 
 export function getCateList(params) {
   return request({
-    url: '/vue-admin-template/cate/list',
-   // url:'http://shop.com/api/v1/admin/category/tree',
+    //url: '/vue-admin-template/cate/list',
+    url:'http://shop.com/api/v1/admin/category/tree',
     method: 'get',
     params
   })
@@ -22,11 +22,12 @@ export function addCate(data,params){
 }
 
 
-export function getAttrs(params){
-
+export function getAttrs(id,params){
+  
   return request({
-    url:'/vue-admin-template/cate/attrs',
-    method:'get',
+   // url:'/vue-admin-template/cate/attrs',
+    url:'http://shop.com/api/v1/admin/category/attrs/'+id, 
+   method:'get',
     params
   });
 }
