@@ -30,7 +30,7 @@
 
           <el-table-column label="封面">
             <template v-slot="scope">
-              <el-img :src="scope.row.main_image"></el-img>
+              <el-image :src="scope.row.main_image"></el-image>
             </template>
           </el-table-column>
 
@@ -48,6 +48,9 @@
                     <el-table-column label="库存">
             <template v-slot="scope">{{scope.row.count}}</template>
           </el-table-column>
+
+           <el-table-column label="操作">
+          </el-table-column>
         </el-table>
       </el-main>
     </el-container>
@@ -63,6 +66,7 @@ export default {
     return {
       status: "1",
       list: [],
+       listLoading: true,
       paginate: {
         limit: 15
       }
@@ -70,7 +74,7 @@ export default {
   },
 
   created(){
-    loadGoodsList();
+   this.loadGoodsList();
   },
 
   methods: {
@@ -88,7 +92,7 @@ export default {
       goodsList(this.paginate)
         .then(resp => {
           this.list = resp.data.data;
-
+          this.listLoading = false;
         })
         .catch(err => {});
     }

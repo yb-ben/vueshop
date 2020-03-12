@@ -3,7 +3,7 @@ import request from '@/utils/request'
 export function getCateList(params) {
   return request({
     //url: '/vue-admin-template/cate/list',
-    url:'http://shop.com/api/v1/admin/category/tree',
+    url:'http://shop.yuna.group/api/v1/admin/category/tree',
     method: 'get',
     params
   })
@@ -26,7 +26,7 @@ export function getAttrs(id,params){
   
   return request({
    // url:'/vue-admin-template/cate/attrs',
-    url:'http://shop.com/api/v1/admin/category/attrs/'+id, 
+    url:'http://shop.yuna.group/api/v1/admin/category/attrs/'+id, 
    method:'get',
     params
   });
