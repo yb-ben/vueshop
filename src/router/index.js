@@ -192,6 +192,13 @@ export const constantRoutes = [
         component:()=>import('@/views/goods/add'),
         hidden:true,
         meta:{title:'添加商品'}
+      },
+      {
+        path:'edit/:id',
+        name:'EditGoods',
+        component:()=>import('@/views/goods/edit'),
+        hidden:true,
+        meta:{title:'修改商品'}
       }
 
      

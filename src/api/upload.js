@@ -1,16 +1,16 @@
 import request from '@/utils/request'
 
-
+import {BASEURL} from './base'
 
 export function uploadImage(data,params){
 
   return request({
     
-    url:'http://shop.com/api/v1/admin/upload/uploadImage',
+    url: BASEURL + '/api/v1/admin/upload/uploadImage',
     method: 'post',
     data,
     params    
   })
 }
 
-export const uploadImageUrl = 'http://shop.com/api/v1/admin/upload/uploadImage';
+export const uploadImageUrl =  BASEURL + '/api/v1/admin/upload/uploadImage';

@@ -1,26 +1,19 @@
 export  function find(arr,checker){
-        
-        let i = null;
-        // for(i in arr){
-        //     if(checker(arr[i])){
-        //          return arr[i];
-        //     }
-        //     if(arr[i].children){
-        //        return find(arr,checker);
-        //     }
-        // }
+
         let res = null;
-        arr.forEach(value => {
-            if(checker(value)){
-                res = value;
-                return false;
+        let len = arr.length;
+        for(let i = 0;i<len;i++){
+            if(checker(arr[i])){
+                res = arr[i];
+                break;
             }
-            if(value.children){
-                if(find(value.children,checker)){
-                    return false;
+            if(arr[i].children){
+                res = find(arr[i].children,checker);
+                if(res){
+                    break;
                 }
             }
-        });
+        }
         return res;
     }
 

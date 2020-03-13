@@ -1,9 +1,10 @@
 import request from '@/utils/request'
+import {BASEURL} from './base'
 
 export function getCateList(params) {
   return request({
     //url: '/vue-admin-template/cate/list',
-    url:'http://shop.yuna.group/api/v1/admin/category/tree',
+    url: BASEURL +'/api/v1/admin/category/tree',
     method: 'get',
     params
   })
@@ -13,8 +14,8 @@ export function addCate(data,params){
 
   return request({
     
-    url:'/vue-admin-template/cate/add',
-    //url: 'http://shop.com/api/v1/admin/category/add',
+    //url:'/vue-admin-template/cate/add',
+    url: BASEURL + '/api/v1/admin/category/add',
     method: 'post',
     data,
     params    
@@ -26,7 +27,7 @@ export function getAttrs(id,params){
   
   return request({
    // url:'/vue-admin-template/cate/attrs',
-    url:'http://shop.yuna.group/api/v1/admin/category/attrs/'+id, 
+    url:  BASEURL + '/api/v1/admin/category/attrs/'+id, 
    method:'get',
     params
   });
