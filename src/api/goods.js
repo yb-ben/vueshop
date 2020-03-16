@@ -14,6 +14,18 @@ export function addGoods(data,params){
 }
 
 
+export function editGoods(data,params){
+
+  return request({
+    
+    url: BASEURL + '/api/v1/admin/goods/edit',
+    method: 'post',
+    data,
+    params    
+  })
+}
+
+
 
 export function goodsList(params){
 

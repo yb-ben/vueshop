@@ -30,7 +30,7 @@
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload"
-             
+            
             >
               <img v-if="imageUrl" :src="imageUrl" class="avatar" />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -48,6 +48,8 @@
               :auto-upload="false"
               :limit="9"
                ref="mImage"
+               :file-list="mImageObj"
+               :multiple="true"
             >
               <i class="el-icon-plus"></i>
             </el-upload>
@@ -150,7 +152,7 @@
 <script>
 import cateSelecter from "@/views/cate/cateSelecter";
 import { getAttrs } from "@/api/cate";
-import {addGoods , detail } from "@/api/goods";
+import {editGoods , detail } from "@/api/goods";
 import {uploadImageUrl} from "@/api/upload";
 import Tinymce from '@/components/Tinymce';
 //主图
@@ -181,6 +183,20 @@ const mImgHandler = {
 const mainImgHandler = {
   handleRemove(file, fileList) {
     console.log(file, fileList);
+    if(file.id){
+      this.mImage.forEach((v,i)=>{
+        if(v.id !== undefined && v.id === file.id){
+          this.mImage.splice(i,1);return false;
+        }
+      });
+    }else if(file.response){
+        this.mImage.forEach((v,i)=>{
+          if(v.url === file.response.data.path){
+            this.mImage.splice(i,1);return false;
+          }
+        });
+    }
+
   },
    handlePictureCardPreview(file) {
      console.log(file);
@@ -193,15 +209,17 @@ const mainImgHandler = {
     if(res.code !== 0){
       return false;
     }
-    this.mImage.push(res.data.path);
+    this.mImage.push({url:res.data.path});
+//    this.mImageObj.push({url:res.data.path_full});
   },
 
   handleAddImage(file,fileList){
+    
     this.$refs.mImage.submit()
   },
 
   handleSelectImage(file,fileList){
-    console.log(file,fileList);
+ //   console.log(file,fileList);
   }
  
 };
@@ -209,7 +227,12 @@ const mainImgHandler = {
 const attrVal = {
   handleClose(target, tag) {
     target.values.splice(target.values.indexOf(tag), 1);
-    this.sku = [{}];
+    this.sku.forEach((v,i)=>{
+      if(v[target.id] === tag){
+        this.sku.splice(i,1);return false;
+      }
+    });
+ //   this.sku = [{}];
     this.$forceUpdate();
     //this.$delete(target.values,target.values.indexOf(tag));
   },
@@ -218,7 +241,9 @@ const attrVal = {
     this.$set(target, "inputVisible", true);
 
     this.$nextTick(_ => {
-      this.$refs["saveTagInput" + target.id][0].$refs.input.focus();
+
+        this.$refs["saveTagInput" + target.id][0].$refs.input.focus();
+  
     });
   },
 
@@ -253,7 +278,7 @@ export default {
       dialogVisible: false,
       uploadImageUrl,
       mImage:[],
-      mImageObj:null,
+      mImageObj:[],
       inputVisible: false,
       inputValue: "",
       cateAttrs: [],
@@ -267,7 +292,8 @@ export default {
       count:0,
       main_image:"",
       title: "", 
-      loadcomplete:false
+      loadcomplete:false,
+      id:""
     };
   },
 
@@ -297,16 +323,25 @@ export default {
     ...mImgHandler,
     ...attrVal,
     onPostCid(val) {
+
       this.cateId = val;
-      this.sku = [{}];
       if (!val) {
         this.cateAttrs = [];
       } else {
         getAttrs( this.cateId )
           .then(resp => {
             resp.data.forEach(v => {
+              v.inputVisible =false;
+              v.inputValue = "";
               v.values = [];
+              this.attrValuesMap.forEach(va =>{
+                  if(va.attr_id === v.id)
+                    v.values.push(va.val);   
+              });
+
             });
+            
+            
             this.cateAttrs = resp.data;
           })
           .catch(err => {});
@@ -333,19 +368,28 @@ export default {
     loadData(id){
         detail(id).then(resp=>{
             let d = resp.data;
+            this.id= id;
             this.cateId = d.cate_id;
             this.title = d.title;
             this.main_image = d.main_image;
             this.imageUrl = d.main_image_full;
             d.gallery.forEach((v)=>{
-                this.mImage.push(v.img_full);
+                this.mImage.push({ id:v.id , url:v.img});
+                this.mImageObj.push({id:v.id,url:v.img_full});
             });
-            this.mImageObj = d.gallery;
+
             this.price = d.price;
             this.line_price = d.line_price;
             this.count = d.count;
             this.content = d.content.content;
             this.loadcomplete = true;
+
+            this.attrValuesMap = d.values;
+            let t = [];
+             d.specs.forEach(v=>{
+               t.push({price:v.price,line_price:v.line_price,count:v.count,...v.spu});
+             });
+            this.sku = t;
         }).catch(err=>{
 
         });
@@ -361,7 +405,12 @@ export default {
         'cate_id' : this.cateId,
         'attrValues': this.cateAttrs,
         'sku': this.sku,
-        'content':this.content
+        'content':this.content,
+        'id' : this.id,
+        'price' : this.price,
+        'line_price':this.line_price,
+        'count' : this.count,
+        
       };
       let t = [];
       d.sku.forEach(function(v){
@@ -370,10 +419,10 @@ export default {
          }
       });
       d.sku = t;
-      addGoods(d).then(resp=>{
+      editGoods(d).then(resp=>{
         if(resp.code === 0){
           this.$message({
-            message: '添加成功',
+            message: '修改成功',
             type: 'success',
             onClose:()=>{
               this.$router.push('/goods/index');

@@ -180,7 +180,15 @@ const mImgHandler = {
 //图集
 const mainImgHandler = {
   handleRemove(file, fileList) {
-    console.log(file, fileList);
+    
+    if(file.response){
+        this.mImage.forEach((v,i)=>{
+          if(v.url === file.response.data.path){
+            this.mImage.splice(i,1);return false;
+          }
+        });
+    }
+
   },
    handlePictureCardPreview(file) {
      console.log(file);
@@ -193,7 +201,7 @@ const mainImgHandler = {
     if(res.code !== 0){
       return false;
     }
-    this.mImage.push(res.data.path);
+    this.mImage.push({url:res.data.path});
   },
 
   handleAddImage(file,fileList){
