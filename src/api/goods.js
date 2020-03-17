@@ -48,6 +48,41 @@ export function detail(id,params){
 
 
 
+export function attrs(params){
+  return request({
+    url: BASEURL + '/api/v1/admin/spu/attrs',
+    method: 'get',
+    params
+  })
+}
 
+export function addAttr(data,params){
+  return request({
+    url: BASEURL + '/api/v1/admin/spu/addAttr',
+    method: 'post',
+    data,
+    params
+  })
+}
+
+
+
+
+export function values(params){
+  return request({
+    url: BASEURL + '/api/v1/admin/spu/values',
+    method: 'get',
+    params
+  })
+}
+
+export function addValue(data,params){
+  return request({
+    url: BASEURL + '/api/v1/admin/spu/addValue',
+    method: 'post',
+    data,
+    params
+  })
+}
 
 

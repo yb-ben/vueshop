@@ -6,13 +6,13 @@
       </el-header>
 
       <el-main>
-        <el-form :model="form">
+        <el-form >
           <el-form-item label="商品名称" :label-width="formLabelWidth">
-            <el-input v-model="form.title" autocomplete="off"></el-input>
+            <el-input v-model="title" autocomplete="off"></el-input>
           </el-form-item>
 
           <el-form-item label="价格" :label-width="formLabelWidth">
-            <el-input v-model="price" autocomplete="off"></el-input>
+            <el-input v-model="price"  autocomplete="off"></el-input>
           </el-form-item>
 
           <el-form-item label="划线价格" :label-width="formLabelWidth">
@@ -32,7 +32,7 @@
               :before-upload="beforeAvatarUpload"
              
             >
-              <img v-if="imageUrl" :src="imageUrl" class="avatar" />
+              <img v-if="main_image_full" :src="main_image_full" class="avatar" />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
             </el-upload>
           </el-form-item>
@@ -59,78 +59,8 @@
 
           <cateSelecter @event1="onPostCid"></cateSelecter>
 
-          <el-form-item
-            v-for="(item,index) in cateAttrs"
-            :key="item.id"
-            :label="item.name"
-            :label-width="formLabelWidth"
-          >
-            <el-tag
-              :key="tag"
-              v-for="tag in item.values"
-              closable
-              :disable-transitions="false"
-              @close="handleClose(item,tag)"
-            >{{tag}}</el-tag>
 
-            <el-input
-              class="input-new-tag"
-              v-if="cateAttrs[index].inputVisible"
-              v-model="cateAttrs[index].inputValue"
-              :ref="'saveTagInput'+item.id"
-              size="small"
-              @keyup.enter.native="handleInputConfirm(item)"
-              @blur="handleInputConfirm(item)"
-            ></el-input>
-            <el-button v-else class="button-new-tag" size="small" @click="showInput(item)">+ New Tag</el-button>
-          </el-form-item>
-
-          <el-form-item
-            label="SKU"
-            :label-width="formLabelWidth"
-            v-if="cateAttrs && cateAttrs.length>0"
-          >
-            <el-table :data="sku">
-              <el-table-column label="属性">
-                <template v-slot="scope">
-                  <el-select
-                    v-for="i in cateAttrs"
-                    :key="i.id"
-                    v-model="scope.row[i.id]"
-                    style="width:120px;margin-right:5px"
-                    :placeholder="i.name"
-                    @change="specAttrChange(scope.row)"
-                  >
-                    <el-option v-for="v in i.values" :label="v" :value="v" :key="v"></el-option>
-                  </el-select>
-                </template>
-              </el-table-column>
-              <el-table-column label="价格" width="150">
-                <template v-slot="scope">
-                  <el-input v-model="scope.row.price"></el-input>
-                </template>
-              </el-table-column>
-              <el-table-column label="划线价格" width="150">
-                <template v-slot="scope">
-                  <el-input v-model="scope.row.line_price"></el-input>
-                </template>
-              </el-table-column>
-              <el-table-column label="库存" width="150">
-                <template v-slot="scope">
-                  <el-input v-model="scope.row.count"></el-input>
-                </template>
-              </el-table-column>
-
-              <el-table-column width="150">
-                <template v-slot="scope">
-                  <el-button @click="delSpec(scope.$index)" type="danger">删除</el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-            <el-button class="addSpecBtn" @click="addSpec" type="primary">
-              <div class="add"></div>
-            </el-button>
-          </el-form-item>
+          <spuComponent></spuComponent>
 
           <el-form-item label="商品详情" :label-width="formLabelWidth">
                <tinymce v-model="content" :height="300" />
@@ -153,6 +83,7 @@ import { getAttrs } from "@/api/cate";
 import {addGoods} from "@/api/goods";
 import {uploadImageUrl} from "@/api/upload";
 import Tinymce from '@/components/Tinymce';
+import spuComponent from "@/views/spu/index";
 //主图
 const mImgHandler = {
   
@@ -161,8 +92,9 @@ const mImgHandler = {
    if(res.code !== 0){
      return false;
    }
-   this.main_image = res.data.path;
-    this.imageUrl = URL.createObjectURL(file.raw);
+    this.main_image = res.data.path;
+    this.file_id = res.data.file_id;
+    this.main_image_full = URL.createObjectURL(file.raw);
   },
    beforeAvatarUpload(file) {
     const isJPG = file.type === "image/jpeg";
@@ -179,8 +111,7 @@ const mImgHandler = {
 };
 //图集
 const mainImgHandler = {
-  handleRemove(file, fileList) {
-    
+  handleRemove(file, fileList) {   
     if(file.response){
         this.mImage.forEach((v,i)=>{
           if(v.url === file.response.data.path){
@@ -201,7 +132,7 @@ const mainImgHandler = {
     if(res.code !== 0){
       return false;
     }
-    this.mImage.push({url:res.data.path});
+    this.mImage.push({url:res.data.path,file_id:res.data.file_id});
   },
 
   handleAddImage(file,fileList){
@@ -213,45 +144,11 @@ const mainImgHandler = {
   }
  
 };
-//属性值
-const attrVal = {
-  handleClose(target, tag) {
-    target.values.splice(target.values.indexOf(tag), 1);
-    this.sku = [{}];
-    this.$forceUpdate();
-    //this.$delete(target.values,target.values.indexOf(tag));
-  },
-
-  showInput(target) {
-    this.$set(target, "inputVisible", true);
-
-    this.$nextTick(_ => {
-      this.$refs["saveTagInput" + target.id][0].$refs.input.focus();
-    });
-  },
-
-  handleInputConfirm(item) {
-    console.log(item);
-    let inputValue = item.inputValue;
-    if (inputValue) {
-      if (!item.values) {
-        item.values = [];
-      }
-      if (-1 === item.values.indexOf(inputValue)) {
-        item.values.push(inputValue);
-      } else {
-        return false;
-      }
-    }
-    item.inputVisible = false;
-    item.inputValue = "";
-  }
-};
 
 export default {
   name: "AddGoods",
   components: {
-    cateSelecter,Tinymce
+    cateSelecter,Tinymce,spuComponent
   },
   data() {
     return {
@@ -259,24 +156,19 @@ export default {
       imageUrl: "",
       dialogImageUrl: "",
       dialogVisible: false,
-      uploadImageUrl,
       mImage:[],
-      inputVisible: false,
-      inputValue: "",
-      cateAttrs: [],
+      uploadImageUrl,
+      spu: [],
       content:"",
-      sku: [
-        {}
-      ],
+      sku: [ ],
       cateId:0,
       price:0,
       line_price:0,
       count:0,
       main_image:"",
-      form: {
-        title: "",
-        
-      }
+      main_image_full:null,
+      file_id:null,
+      title:"",
     };
   },
 
@@ -298,22 +190,9 @@ export default {
   methods: {
     ...mainImgHandler,
     ...mImgHandler,
-    ...attrVal,
     onPostCid(val) {
+      //选择分类
       this.cateId = val;
-      this.sku = [{}];
-      if (!val) {
-        this.cateAttrs = [];
-      } else {
-        getAttrs( this.cateId )
-          .then(resp => {
-            resp.data.forEach(v => {
-              v.values = [];
-            });
-            this.cateAttrs = resp.data;
-          })
-          .catch(err => {});
-      }
     },
 
     //添加规格项
