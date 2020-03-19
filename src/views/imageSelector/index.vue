@@ -1,7 +1,13 @@
 <template>
   <div>
 
-    <el-dialog :visible.sync="dialogVisible" width="50%" @close="nowPage='home'">
+    <el-dialog :visible="visible" width="50%" @close="onDialogClose" @closed="onClosed" title="图片选择">
+      <div v-if="nowPage === 'imageUpload'" slot="title" class="header-title" >
+        <el-page-header @back="jumpToHome" content="图片选择">
+        </el-page-header>
+      </div>
+
+
       <div v-if="nowPage === 'home'">
         <el-tabs v-model="activeName" @tab-click="handleClick">
           <el-tab-pane label="图片选择" name="image">
@@ -41,10 +47,13 @@
       </div>
 
       <div v-if="nowPage === 'imageUpload'">
+
         <el-form label-width="120px">
           <el-form-item label="网络图片">
-            <el-input v-model="networkImageUrl"></el-input>
-            <el-button>提取</el-button>
+
+                <el-input v-model="networkImageUrl" style="width: 80%"></el-input>
+
+                <el-button>提取</el-button>
           </el-form-item>
 
           <el-form-item label="本地图片">
@@ -57,8 +66,8 @@
         </el-form>
       </div>
 
-      <span v-show="nowPage === 'home'" slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
+      <span v-if="nowPage === 'home'" slot="footer" class="dialog-footer">
+        <el-button @click="visible = false">取 消</el-button>
         <el-button type="primary" @click="submit">确 定</el-button>
       </span>
     </el-dialog>
@@ -69,6 +78,7 @@
 <script>
 import { uploadImageUrl, imageList } from "@/api/upload";
 import imageUploader from "./imageUploader";
+
 export default {
   name: "ImageSelector",
   props: ["selectMode","dv"],
@@ -77,6 +87,7 @@ export default {
   },
   data() {
     return {
+        visible:false,
       imageUrl: "",
       uploadImageUrl,
       dialogVisible: false,
@@ -96,6 +107,8 @@ export default {
     };
   },
 
+
+
   created() {
     this.getImageList();
   },
@@ -105,19 +118,34 @@ export default {
       console.log(val);
       this.sm = val;
     },
-    dv(val){
-        console.log(val);
-        this.dialogVisible = val;
-    }
+
+      getImageUploadState(){
+         this.visible = Boolean(this.getImageUploadState);
+
+      }
   },
 
   computed: {
-    getImageSelectedStyle() {
-      return {};
-    }
+
+         getImageUploadState(){
+             return this.$store.getters.imageUpload
+         }
+
+
   },
 
   methods: {
+      onDialogClose(){
+        console.log('dialogclose');
+          this.$store.dispatch("upload/close");
+      },
+
+      onClosed(){
+          //关闭回调
+          console.log('closed');
+          this.nowPage='home';
+      },
+
     jumpToImageUpload() {
       this.nowPage = "imageUpload";
     },
@@ -132,10 +160,11 @@ export default {
       this.file_id = data.file_id;
     },
 
- 
+
+
     onPageChange(p){
    this.getImageList({
-        page: p 
+        page: p
       });
     },
 
@@ -162,10 +191,14 @@ export default {
     },
 
     submit(){
-        let t = this.imageSet.find(x => {
-          return x.selected === true;
+        let ret = [];
+          this.imageSet.forEach(x => {
+          if(x.selected === true){
+              ret.push(x);
+          }
         });
-        this.$emit('');
+        this.$emit('submit-images',ret);
+        this.visible = false;
     },
 
     handleClick() {}
@@ -182,20 +215,6 @@ export default {
   border: 2px solid #fff0;
 }
 
-.image-item-selected {
-  border: 2px solid #07d;
-}
-.image-item-selected::after {
-  position: absolute;
-  display: block;
-  content: " ";
-  right: 0;
-  top: 0;
-  border-color: #07d #07d transparent transparent;
-  border-style: solid;
-  border-width: 14px;
-  z-index: 1;
-}
 
 .selectedIcon {
   position: absolute;
@@ -204,4 +223,9 @@ export default {
   color: #fff;
   z-index: 111111;
 }
+
+
+
 </style>
+
+

@@ -1,27 +1,34 @@
 
 const state= {
 
-    imageUpload: false
+    imageUpload: 0
 
-},
+}
 
 
 const mutations = {
 
-    OPEN_(state){
-        state.imageUpload = true;
+    open(state){
+
+        state.imageUpload += 1;
     },
 
-    CLOSE_(state){
-        state.imageUpload = false;
+    close(state){
+        state.imageUpload = 0;
     }
-},
+}
 
 const actions = {
 
     open(context){
+
         context.commit('open');
     },
+
+    close(context){
+
+      context.commit('close');
+    }
 
 }
 
@@ -32,5 +39,4 @@ export default {
     mutations,
     actions
   }
-  
-  
+
