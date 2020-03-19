@@ -56,6 +56,12 @@ export function attrs(params){
   })
 }
 
+/**
+ * 
+ * @param {name} data 
+ * @param {*} params
+ * @response {data: id, code , msg } 
+ */
 export function addAttr(data,params){
   return request({
     url: BASEURL + '/api/v1/admin/spu/addAttr',
@@ -65,9 +71,10 @@ export function addAttr(data,params){
   })
 }
 
-
-
-
+/**
+ * 
+ * @param {*} params 
+ */
 export function values(params){
   return request({
     url: BASEURL + '/api/v1/admin/spu/values',

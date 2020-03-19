@@ -2,8 +2,9 @@
   <div>
     <el-form-item label="商品规格" label-width="120px">
       <el-form ref="attr">
-        <el-row v-for="(a,idx) in attr" :key="a.k_id">
+        <el-row v-for="(a,idx) in attr" :key="a.k_id" :class="{'margin-bottom':'10px'}">
           <el-form-item label="规格名">
+           
             <el-select
               v-model="a.selected"
               @change="onAttrSelected"
@@ -19,11 +20,13 @@
                 :disabled="j.disabled"
               ></el-option>
             </el-select>
-            <el-button class="el-icon-close" @click="removeSpuItem(idx)"></el-button>
+            <i class="el-icon-close" @click="removeSpuItem(idx)"></i>
+             <el-checkbox v-if="idx === 0" v-model="isAddSPUImg">添加规格图片</el-checkbox>
           </el-form-item>
 
-          <el-form-item label="规格值">
-            <span v-for="(s,i) in a.values" :key="i">
+          <el-form-item label="规格值" >
+                <div :class="{'margin-left':spuValueLabelWith}">
+               <div style="display:inline-block" v-for="(s,i) in a.values" :key="i">
               <el-select
                 filterable
                 v-model="s.valueSelected"
@@ -38,15 +41,25 @@
                   :disabled="vv.disabled"
                 ></el-option>
               </el-select>
-              <el-button class="el-icon-close" @click="removeSpuValue(idx,i)"></el-button>
-            </span>
-            <el-button v-if="a.selected" @click="addSpuValue(a)">添加规格值</el-button>
+              <i class="el-icon-close" @click="removeSpuValue(idx,i)"></i>
+              <div>
+                  <img v-if="s.imageUrl" :src="s.imageUrl" class="avatar1" />
+                  <i v-if="isAddSPUImg" class="el-icon-plus avatar-uploader-icon1"></i>
+                  </div>
+                  <!-- <ImageSelector v-if="idx === 0 && s.dialogVisible " :select-mode="1" :dv="s.dialogVisible"></ImageSelector> -->
+            </div>
+            
+            <el-button v-if="a.selected" @click="addSpuValue(a)" :disabled="a.addSpuValueBtnDisabled">添加规格值</el-button>
+            </div>
           </el-form-item>
         </el-row>
       </el-form>
-
-      <el-button @click="addSpuItem" :disabled="addSpuItemBtnDisabled">添加规格项目</el-button>
+      
+      <el-button  @click="addSpuItem" :disabled="addSpuItemBtnDisabled">添加规格项目</el-button>
     </el-form-item>
+
+
+    
 
     <el-form-item label="规格明细" label-width="120px" v-if="spu.length>0">
       <el-table
@@ -85,170 +98,32 @@
 
 <script>
 import { attrs, addAttr, values, addValue } from "@/api/goods";
-import { foo } from "@/utils/common";
+import { uploadImageUrl } from "@/api/upload"
+import ImageSelector from "@/views/imageSelector"
 
 export default {
   name: "SPUEditor",
+  components:{
+    ImageSelector
+  },
   data() {
     return {
+      uploadImageUrl,
+      spuValueLabelWith:'120px',
+      isAddSPUImg:false,
       attrs: [],
       values: [],
       k1_id: "",
       k2_id: "",
       k3_id: "",
       attr: [],
-      // spu: [
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黑色",
-      //   //   v1_id: 100,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "大",
-      //   //   v2_id: 102,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黑色",
-      //   //   v1_id: 100,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "小",
-      //   //   v2_id: 103,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黄色",
-      //   //   v1_id: 101,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "大",
-      //   //   v2_id: 102,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黄色",
-      //   //   v1_id: 101,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "小",
-      //   //   v2_id: 103,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黑色",
-      //   //   v1_id: 100,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "大",
-      //   //   v2_id: 102,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黑色",
-      //   //   v1_id: 100,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "小",
-      //   //   v2_id: 103,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黄色",
-      //   //   v1_id: 101,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "大",
-      //   //   v2_id: 102,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黄色",
-      //   //   v1_id: 101,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "小",
-      //   //   v2_id: 103,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黑色",
-      //   //   v1_id: 100,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "大",
-      //   //   v2_id: 102,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黑色",
-      //   //   v1_id: 100,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "小",
-      //   //   v2_id: 103,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黄色",
-      //   //   v1_id: 101,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "大",
-      //   //   v2_id: 102,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // },
-      //   // {
-      //   //   k1: "颜色",
-      //   //   k1_id: 1,
-      //   //   v1: "黄色",
-      //   //   v1_id: 101,
-      //   //   k2: "尺寸",
-      //   //   k2_id: 2,
-      //   //   v2: "小",
-      //   //   v2_id: 103,
-      //   //   count: 0,
-      //   //   cast: 0
-      //   // }
-      // ],
+    
       spu:[],
       vlenArr:[],
       maxSpuItem: 3,
       maxSpuValue: 10,
       cacheMap:new Map(),
-      cnt: 0
+      cnt: 0,
     };
   },
 
@@ -259,32 +134,30 @@ export default {
       return this.attr.length === this.maxSpuItem;
     },
 
-    getValues(idx) {
-      let s = this.attr[idx].selected;
-      let ret = null;
-      this.attrs.forEach((v, i) => {
-        if (v.k_id === s) ret = v.values;
-      });
-      return ret;
-    },
+   
 
     getSpuAttr() {
-      let t = this.spu[0];
-      let ret = [];
-      if (t.k1) {
-        ret.push({ k: t.k1, k_id: t.k1_id });
-      }
-      if (t.k2) {
-        ret.push({ k: t.k2, k_id: t.k2_id });
-      }
-      if (t.k3) {
-        ret.push({ k: t.k3, k_id: t.k3_id });
+       let t = this.spu[0];
+       let ret = [];
+      let regex = /^k\d+$/;
+       let c = Object.keys(this.spu[0]).reduce((total,v)=>{
+         
+          return regex.test(v) ? total+1:total }
+          ,0);
+      for(let i = 1;i<=c;i++){
+        ret.push({k:t['k'+i],k_id: t['k'+i+'_id']});
       }
       return ret;
     }
   },
 
   methods: {
+
+handleAvatarSuccess(response, file, fileList){
+  //规格图片上传成功
+  console.log(response,file,fileList);
+},
+
     addSpuItem() {
       //添加规格项目
       this.attr.push({});
@@ -305,19 +178,30 @@ export default {
     addSpuValue(v) {
       //添加规格值
       console.log(v);
-      v.values.push({});
+      if(v.values.length < this.maxSpuValue){
+        v.values.push({});
+      }
+      if(v.values.length < this.maxSpuValue){
+        v.addSpuValueBtnDisabled = false;
+      }else{
+        v.addSpuValueBtnDisabled = true;
+        
+      }
       this.$forceUpdate();
+      
     },
 
     removeSpuValue(pi, i) {
       //移除规格值
-      let v = this.attr[pi].values[i];
-
-      let t = this.attr[pi].allValues.find(x => {
+      let tt = this.attr[pi];
+      let v = tt.values[i];
+      
+      let t = tt.allValues.find(x => {
         return v.v_id === x.v_id;
       });
       if (t) t.disabled = false;
-      this.attr[pi].values.splice(i, 1);
+      tt.values.splice(i, 1);
+      tt.addSpuValueBtnDisabled = false;
       this.$forceUpdate();
       this.getSpuArr();
     },
@@ -445,7 +329,6 @@ export default {
 
     getSpuArr() {
       //计算出SPU数组
-      console.log('start getSpuArr');
       let ret = [];
       let validAttrs = [];
       let validValues = [];
@@ -466,7 +349,7 @@ export default {
             v.pointer = t;
             validAttrs.push(v);
             //validValues.push(t);
-            lenArr.push(success);
+            
           }
        }
       });
@@ -479,64 +362,145 @@ export default {
           v.pointer.sort((a,b)=>{
             return a.v_id - b.v_id;
           })
+          lenArr.push(v.pointer.length);
           validValues.push( v.pointer);
         });
 
-        foo(validValues,0,validValues.length,{},validAttrs,ret,'',this.cacheMap);
+        this.foo(validValues,0,validValues.length,{},validAttrs,ret,'',this.cacheMap);
+        this.cacheMap.clear();
+        ret.forEach((x)=>{
+          this.cacheMap.set(x._id,x);
+        });
       }
       this.vlenArr = lenArr;
       this.spu = ret;
     },
 
     arraySpanMethod({ row, column, rowIndex, columnIndex }) {
-      let len ;
-      if(this.spu.length ===0)return;
-      if(this.spu[0].k3){
-        len = 3;
-      }else if(this.spu[0].k2){
-        len = 2;
-      }else{
-        return;
-      }
       
-      switch (len) {
-        case 2:
-          if (columnIndex === 0) {
-
-
-            let l = this.vlenArr[1];
-            
-            if (rowIndex % l === 0) {
-              return [l, 1];
-            } else {
-              return [0, 0];
-            }
+      let regex = /^k\d+$/
+      let len =Object.keys(this.spu[0]).reduce((total,v)=>{ return regex.test(v) ? total+1:total },0);
+       console.log(len);
+      if(len>1 && columnIndex < (len-1)){
+        let l = 1;
+          for(let a = columnIndex;a<len-1;a++){
+              l *= this.vlenArr[a+1];
           }
-          break;
-        case 3:
-          
-          if (columnIndex === 1) {
-            let l =this.vlenArr[2];
-            if (rowIndex % l === 0) {
-              return [l, 1];
-            } else {
-              return [0, 0];
-            }
-          } else if (columnIndex === 0) {
-            let l = this.vlenArr[1] * this.vlenArr[2];
-            if (rowIndex % l === 0) {
-              return [l, 1];
-            } else {
-              return [0, 0];
-            }
-          }
-          break;
+          return (rowIndex % l === 0)?[l,1]:[0,0];
       }
+  // let len = 0;
+  //     if(this.spu[0].k3){
+  //       len = 3;
+  //     }else if(this.spu[0].k2){
+  //       len = 2;
+  //     }else{
+  //       return;
+  //     }
+  //     switch (len) {
+  //       case 2:
+  //         if (columnIndex === 0) {
+
+  //           let l = this.vlenArr[1];
+            
+  //           if (rowIndex % l === 0) {
+  //             return [l, 1];
+  //           } else {
+  //             return [0, 0];
+  //           }
+  //         }
+  //         break;
+  //       case 3:
+          
+  //         if (columnIndex === 1) {
+  //           let l =this.vlenArr[2];
+  //           if (rowIndex % l === 0) {
+  //             return [l, 1];
+  //           } else {
+  //             return [0, 0];
+  //           }
+  //         } else if (columnIndex === 0) {
+  //           let l = this.vlenArr[1] * this.vlenArr[2];
+  //           if (rowIndex % l === 0) {
+  //             return [l, 1];
+  //           } else {
+  //             return [0, 0];
+  //           }
+  //         }
+  //         break;
+
+         
+  //     }
     },
 
     sendMsg() {
       this.$emit("spu", this.spu);
+    },
+
+    foo($arr,$currHeight,$height,$obj,$attr, $save,$key,$cacheMap){
+    let t =  $arr[$currHeight];
+    let tt = $attr[$currHeight];
+    let c = $currHeight +1;
+    for(let i = 0;i<t.length;i++){
+        if(!$currHeight){
+            $obj = {};
+            $key = '';
+        }
+        $obj['k'+c] = tt.k;
+        $obj['k'+c+'_id'] = tt.k_id; 
+        $obj['v'+c] = t[i].v;     
+        $obj['v'+c+'_id'] = t[i].v_id;
+        $key += 'k'+tt.k_id + 'v'+t[i].v_id;
+
+        if(c < $height){
+            this.foo($arr,$currHeight+1,$height,$obj,$attr,$save,$key,$cacheMap);
+        }else{
+        
+            if($cacheMap.has($key)){
+                let m = $cacheMap.get($key);
+                $obj.cast = m.cast;
+                $obj.weight = m.weight;
+                $obj.price = m.price;
+                $obj.code = m.code;
+                $obj.count = m.count;
+            }
+            $obj._id = $key;
+            $save.push(Object.assign({},$obj));
+           
+        }
     }
+}
+
   }
 };
 </script>
+
+
+<style scoped>
+i.el-icon-close{
+       position: relative;
+    color: #ffffff00;
+    padding: 2px;
+    border-radius: 10px;
+    left: -15px;
+    top: -18px;
+}
+i.el-icon-close:hover {
+    background-color: #aaa;
+}
+
+.avatar1 {
+  width: 120px;
+  height: 120px;
+  display: block;
+}
+.avatar-uploader-icon1 {
+  font-size: 28px;
+  color: #8c939d;
+  width: 120px;
+  height: 120px;
+  line-height: 120px;
+  text-align: center;
+  border: 1px dashed #eee;
+}
+
+</style>

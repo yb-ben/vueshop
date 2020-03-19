@@ -14,3 +14,12 @@ export function uploadImage(data,params){
 }
 
 export const uploadImageUrl =  BASEURL + '/api/v1/admin/upload/uploadImage';
+
+
+export function imageList(params){
+  return request({
+    url:BASEURL + '/api/v1/admin/upload/imageList',
+    method:'get',
+    params
+  })
+}
