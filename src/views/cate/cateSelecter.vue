@@ -51,14 +51,13 @@ export default {
       currThirdId: null,
       formLabelWidth: "120px",
       postCid: "",
-      initValue: 0
+      initValue: this.message || 0
     };
   },
 
   created() {
     //初始化
 
-    this.initValue = this.$props.message;
     this.loadData();
   },
 

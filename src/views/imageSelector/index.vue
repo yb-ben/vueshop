@@ -1,15 +1,20 @@
 <template>
   <div>
+    <el-dialog
+      :visible.sync="dialogVisible"
+      width="50%"
+      @close="onDialogClose"
+      @closed="onClosed"
+      @open="getImageList();"
+      title="图片选择"
 
-    <el-dialog :visible="visible" width="50%" @close="onDialogClose" @closed="onClosed" title="图片选择">
-      <div v-if="nowPage === 'imageUpload'" slot="title" class="header-title" >
-        <el-page-header @back="jumpToHome" content="图片选择">
-        </el-page-header>
+    >
+      <div v-if="nowPage === 'imageUpload'" slot="title" class="header-title">
+        <el-page-header @back="jumpToHome" content="图片选择"></el-page-header>
       </div>
 
-
       <div v-if="nowPage === 'home'">
-        <el-tabs v-model="activeName" @tab-click="handleClick">
+        <el-tabs v-model="activeName" >
           <el-tab-pane label="图片选择" name="image">
             <el-row>
               <el-col :span="24">
@@ -39,7 +44,7 @@
                 :total="lastResp ? lastResp.total :0"
                 @prev-click="onPageChange"
                 @next-click="onPageChange"
-                @current-change	="onPageChange"
+                @current-change="onPageChange"
               ></el-pagination>
             </el-row>
           </el-tab-pane>
@@ -47,27 +52,25 @@
       </div>
 
       <div v-if="nowPage === 'imageUpload'">
-
         <el-form label-width="120px">
           <el-form-item label="网络图片">
+            <el-input v-model="networkImageUrl" style="width: 80%"></el-input>
 
-                <el-input v-model="networkImageUrl" style="width: 80%"></el-input>
-
-                <el-button>提取</el-button>
+            <el-button>提取</el-button>
           </el-form-item>
 
           <el-form-item label="本地图片">
-            <imageUploader @upload-image="getUploadImage"></imageUploader>
+            <imageUploader @upload-image="getUploadImage" ref="iu"></imageUploader>
           </el-form-item>
 
           <el-form-item>
-            <el-button @click="jumpToHome">确定</el-button>
+            <el-button @click="submitUpload">确定</el-button>
           </el-form-item>
         </el-form>
       </div>
 
       <span v-if="nowPage === 'home'" slot="footer" class="dialog-footer">
-        <el-button @click="visible = false">取 消</el-button>
+        <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="submit">确 定</el-button>
       </span>
     </el-dialog>
@@ -81,16 +84,15 @@ import imageUploader from "./imageUploader";
 
 export default {
   name: "ImageSelector",
-  props: ["selectMode","dv"],
+  props: ["selectMode", "pid","visibleSelector"],
   components: {
     imageUploader
   },
   data() {
     return {
-        visible:false,
       imageUrl: "",
       uploadImageUrl,
-      dialogVisible: false,
+      dialogVisible: this.visibleSelector,
       activeName: "image",
 
       nowPage: "home",
@@ -103,67 +105,58 @@ export default {
       imageSet: [],
       lastResp: null,
 
-      sm: 1 //1单选 2多选
+      sm: this.selectMode ,//1单选 2多选
+      pid_: this.pid,
+
     };
   },
 
-
-
   created() {
-    this.getImageList();
   },
+
+
 
   watch: {
-    selectMode(val) {
-      console.log(val);
-      this.sm = val;
+    
+    visibleSelector(val){
+      this.dialogVisible = val;
     },
 
-      getImageUploadState(){
-         this.visible = Boolean(this.getImageUploadState);
-
-      }
-  },
-
-  computed: {
-
-         getImageUploadState(){
-             return this.$store.getters.imageUpload
-         }
-
+  dialogVisible(val){
+    this.$emit('update:visibleSelector',this.dialogVisible)
+  }
 
   },
+
 
   methods: {
-      onDialogClose(){
-        console.log('dialogclose');
-          this.$store.dispatch("upload/close");
-      },
+    onDialogClose() {
+      //关闭图片选择器
+    },
 
-      onClosed(){
-          //关闭回调
-          console.log('closed');
-          this.nowPage='home';
-      },
+    onClosed() {
+      //关闭回调
+            console.log('Closed');
+      this.jumpToHome();
+        document.getElementsByTagName('body')[0].style.overflow = 'auto';
+    },
 
     jumpToImageUpload() {
       this.nowPage = "imageUpload";
     },
     jumpToHome() {
       this.nowPage = "home";
-      this.getImageList();
     },
 
     getUploadImage(data) {
       this.localImageUrl = data.path;
       this.localImageUrlFull = data.path_full;
       this.file_id = data.file_id;
+      this.imageSet.unshift({id:this.file_id,url:this.localImageUrl,url_full:this.localImageUrlFull});
     },
 
-
-
-    onPageChange(p){
-   this.getImageList({
+    onPageChange(p) {
+      this.getImageList({
         page: p
       });
     },
@@ -178,43 +171,48 @@ export default {
 
     onSelectImage(img) {
       //选中图片
+    
       if (this.sm === 1) {
         let t = this.imageSet.find(x => {
           return x.selected === true;
         });
-        t && (t.selected = false);
-        img.selected = true;
-        this.$forceUpdate();
+        t && (this.$set(t,'selected',  false));
+       
+       this.$set(img,'selected',true);
       } else if (this.sm === 2) {
         this.$set(img, "selected", !img.selected);
       }
     },
 
-    submit(){
-        let ret = [];
-          this.imageSet.forEach(x => {
-          if(x.selected === true){
-              ret.push(x);
-          }
-        });
-        this.$emit('submit-images',ret);
-        this.visible = false;
+
+    submitUpload(){
+      //提交上传
+      this.$refs.iu.submitUpload();
     },
 
-    handleClick() {}
+    submit() {
+      let ret = [];
+      this.imageSet.forEach(x => {
+        if (x.selected === true) {
+          ret.push(x);
+        }
+      });
+      this.$emit("submit-images", ret);
+      this.dialogVisible = false;
+    
+    },
+
   }
 };
 </script>
 
 <style>
-
 .image-item {
   width: 100px;
   height: 100px;
   margin: 10px;
   border: 2px solid #fff0;
 }
-
 
 .selectedIcon {
   position: absolute;
@@ -224,8 +222,21 @@ export default {
   z-index: 111111;
 }
 
+.image-item-selected {
+  border: 2px solid #07d;
+}
 
-
+.image-item-selected::after {
+  position: absolute;
+  display: block;
+  content: " ";
+  right: 0;
+  top: 0;
+  border-color: #07d #07d transparent transparent;
+  border-style: solid;
+  border-width: 14px;
+  z-index: 1;
+}
 </style>
 
 

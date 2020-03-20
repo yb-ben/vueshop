@@ -64,7 +64,7 @@
 
     </el-form-item>
 
-    <ImageSelector :select-mode="1" @submit-images="onSubmitImages"></ImageSelector>
+    <ImageSelector :select-mode="1" @submit-images="onSubmitImages" pid="spu" :visibleSelector.sync="visibleImageSelector"></ImageSelector>
 
 
     <el-form-item label="规格明细" label-width="120px" v-if="spu.length>0">
@@ -88,6 +88,9 @@
         </el-table-column>
         <el-table-column prop="count" label="库存" width="150" v-slot="scope">
           <el-input v-model="scope.row.count"></el-input>
+        </el-table-column>
+       <el-table-column prop="weight" label="重量" width="150" v-slot="scope">
+          <el-input v-model="scope.row.weight"></el-input>
         </el-table-column>
 
         <el-table-column prop="code" label="规格编码" width="150" v-slot="scope">
@@ -131,7 +134,10 @@
                 cacheMap: new Map(),
                 cnt: 0,
 
-                tmpPointer:null
+                tmpPointer:null,
+                cacheValidValues:null,
+                cacheValidAttrs:null,
+                visibleImageSelector: false,
             };
         },
 
@@ -161,10 +167,17 @@
 
         methods: {
 
+
+            init(){
+                //编辑下初始化
+
+            },
+
             showImageUpload(v) {
                 //弹出图片选择器
                 this.tmpPointer = v;
-                this.$store.dispatch("upload/open");
+                this.visibleImageSelector = true;
+                
             },
 
             onSubmitImages(val) {
@@ -380,13 +393,13 @@
                 });
 
                 if (validAttrs.length > 0) {
-                    validAttrs.sort((a, b) => {
-                        return a.k_id - b.k_id;
-                    });
+                    // validAttrs.sort((a, b) => {
+                    //     return a.k_id - b.k_id;
+                    // });
                     validAttrs.forEach((v) => {
-                        v.pointer.sort((a, b) => {
-                            return a.v_id - b.v_id;
-                        })
+                        // v.pointer.sort((a, b) => {
+                        //     return a.v_id - b.v_id;
+                        // })
                         lenArr.push(v.pointer.length);
                         validValues.push(v.pointer);
                     });
@@ -397,6 +410,8 @@
                         this.cacheMap.set(x._id, x);
                     });
                 }
+                this.cacheValidValues = validValues;
+                this.cacheValidAttrs = validAttrs;
                 this.vlenArr = lenArr;
                 this.spu = ret;
             },
@@ -435,6 +450,7 @@
                     $obj['v' + c] = t[i].v;
                     $obj['v' + c + '_id'] = t[i].v_id;
                     $key += 'k' + tt.k_id + 'v' + t[i].v_id;
+                    
 
                     if (c < $height) {
                         this.foo($arr, $currHeight + 1, $height, $obj, $attr, $save, $key, $cacheMap);
@@ -447,6 +463,7 @@
                             $obj.price = m.price;
                             $obj.code = m.code;
                             $obj.count = m.count;
+                           
                         }
                         $obj._id = $key;
                         $save.push(Object.assign({}, $obj));

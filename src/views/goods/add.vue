@@ -23,7 +23,7 @@
             <el-input v-model="count" autocomplete="off"></el-input>
           </el-form-item>
 
-          <el-form-item label="封面图" :label-width="formLabelWidth">
+          <!-- <el-form-item label="封面图" :label-width="formLabelWidth">
             <el-upload
               class="avatar-uploader"
               :action="uploadImageUrl"
@@ -35,7 +35,17 @@
               <img v-if="main_image_full" :src="main_image_full" class="avatar" />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
             </el-upload>
-          </el-form-item>
+          </el-form-item> -->
+          <el-form-item label="封面图" :label-width="formLabelWidth">
+            
+               <img v-if="main_image" :src="main_image_full" class="avatar" @click="visibleImageSelector = true"/>
+                  <i v-if="!main_image" class="el-icon-plus avatar-uploader-icon" @click="visibleImageSelector = true" ></i>
+               
+            </el-form-item>
+               
+             <ImageSelector :select-mode="1" @submit-images="handleSubmitImages" pid="addgoods" :visibleSelector.sync="visibleImageSelector"></ImageSelector>
+
+
 
           <el-form-item label="图集" :label-width="formLabelWidth">
             <el-upload
@@ -57,10 +67,10 @@
             <el-button @click="handleAddImage">上传</el-button>
           </el-form-item>
 
-          <cateSelecter @event1="onPostCid"></cateSelecter>
+          <cateSelecter @event1="onPostCid" ></cateSelecter>
 
 
-          <spuComponent></spuComponent>
+          <spuComponent ref="spuComponent"></spuComponent>
 
           <el-form-item label="商品详情" :label-width="formLabelWidth">
                <tinymce v-model="content" :height="300" />
@@ -84,6 +94,8 @@ import {addGoods} from "@/api/goods";
 import {uploadImageUrl} from "@/api/upload";
 import Tinymce from '@/components/Tinymce';
 import spuComponent from "@/views/spu/index";
+import ImageSelector from "@/views/imageSelector"
+
 //主图
 const mImgHandler = {
   
@@ -109,6 +121,8 @@ const mImgHandler = {
     return isJPG && isLt2M;
   }
 };
+
+
 //图集
 const mainImgHandler = {
   handleRemove(file, fileList) {   
@@ -148,7 +162,7 @@ const mainImgHandler = {
 export default {
   name: "AddGoods",
   components: {
-    cateSelecter,Tinymce,spuComponent
+    cateSelecter,Tinymce,spuComponent,  ImageSelector
   },
   data() {
     return {
@@ -158,9 +172,9 @@ export default {
       dialogVisible: false,
       mImage:[],
       uploadImageUrl,
-      spu: [],
+     
       content:"",
-      sku: [ ],
+     
       cateId:0,
       price:0,
       line_price:0,
@@ -169,6 +183,8 @@ export default {
       main_image_full:null,
       file_id:null,
       title:"",
+
+      visibleImageSelector:false,
     };
   },
 
@@ -195,6 +211,9 @@ export default {
       this.cateId = val;
     },
 
+
+     
+
     //添加规格项
     addSpec() {
       this.sku.push({});
@@ -212,25 +231,49 @@ export default {
     },
 
    
+            handleSubmitImages(val) {
+              //主图选择
+                console.log(val);
+                if(val && val.length > 0){
+                    this.main_image_full = val[0].url_full;
+                    this.main_image = val[0].url;
+                    this.file_id = val[0].id ;
+                    this.$forceUpdate();
+                }
+            },
 
     //提交表单
     submitForm(){
+      let t =this.$refs.spuComponent;
+      
+      let a = [];
+      if(t.cacheValidAttrs){
+          t.cacheValidAttrs.forEach(x=>{
+            let vals = [];
+            x.values.forEach(v=>{
+              vals.push({v:v.id,v_id:v.v_id,path:v.v.path});
+            });
+            a.push({k:x.k,k_id:x.k_id,values:vals})
+        });
+     
+      }
+
       let d = {
-        'title':this.form.title,
+        'title':this.title,
         'main_image':this.main_image,
         'mImage':this.mImage,
         'cate_id' : this.cateId,
-        'attrValues': this.cateAttrs,
-        'sku': this.sku,
-        'content':this.content
+         'price':this.price,
+         'line_price': this.line_price,
+         'file_id' : this.file_id,
+        'content':this.content,
+        'count':this.count,
+        'code' : '',
+        'how':1,
+        'sku':t.spu,
+        'spu':a,
       };
-      let t = [];
-      d.sku.forEach(function(v){
-         if( Object.keys(v).length !== 0){
-           t.push(v);
-         }
-      });
-      d.sku = t;
+        
       addGoods(d).then(resp=>{
         if(resp.code === 0){
           this.$message({

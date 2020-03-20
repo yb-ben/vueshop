@@ -1,11 +1,12 @@
 <template>
   <el-upload
-
+    ref="imageUploader"
     class="avatar-uploader"
     :action="uploadImageUrl"
     :show-file-list="false"
-    :auto-upload="true"
+    :auto-upload="false"
     :on-success="handleAvatarSuccess"
+    :on-change="handleChange"
     :before-upload="beforeAvatarUpload"
   >
     <img v-if="imageUrl" :src="imageUrl" class="avatar" />
@@ -20,43 +21,73 @@ export default {
     return {
       uploadImageUrl,
       imageUrl: "",
-      path_full:"",
-      file_id : "",
-      path:"",
+      path_full: "",
+      file_id: "",
+      path: "",
+      allowFileSize: 0,
+      allowFileType: null
     };
+  },
+
+  created() {
+    console.log(this.getAllowFileSize);
+    this.allowFileSize = this.getAllowFileSize;
+    this.allowFileType = this.getAllowFileType;
+  },
+
+  computed: {
+    getAllowFileSize() {
+      return this.$store.getters.allowFileSize;
+    },
+
+    getAllowFileType() {
+      return this.$store.getters.allowFileType;
+    }
   },
 
   methods: {
     handleAvatarSuccess(res, file) {
-         this.path = res.data.path;
-         this.file_id = res.data.file_id;
-         this.path_full = res.data.path_full;
-        this.imageUrl = URL.createObjectURL(file.raw);
-        console.log(1);
-        this.sendMsg();    
+      this.path = res.data.path;
+      this.file_id = res.data.file_id;
+      this.path_full = res.data.path_full;
+      this.sendMsg();
     },
     beforeAvatarUpload(file) {
-      const isJPG = file.type === "image/jpeg";
-      const isLt2M = file.size / 1024 / 1024 < 2;
-
-      if (!isJPG) {
-        this.$message.error("上传头像图片只能是 JPG 格式!");
-      }
-      if (!isLt2M) {
-        this.$message.error("上传头像图片大小不能超过 2MB!");
-      }
-      return isJPG && isLt2M;
+    
     },
 
-    // submitUpload() {
-    //     this.$refs.upload.submit();
-    //   },
+    handleChange(file) {
+      console.log(file);
+      const a = this.allowFileType.indexOf(file.raw.type) === -1;
+      const b = file.size > this.allowFileSize;
 
-    sendMsg(){
-        console.log('upload-image')
-        this.$emit('upload-image',{file_id:this.file_id ,path:this.path,path_full:this.path_full});
+      if (a) {
+        this.$message.error(
+          "上传头像图片只能是" + this.allowFileType.join(" ") + " 格式!"
+        );
+      } else if (b) {
+        this.$message.error("上传头像图片大小不能超过 2MB!");
+      } else {
+        this.imageUrl = URL.createObjectURL(file.raw);
+      }
+    },
+
+    submitUpload() {
+      this.$refs.imageUploader.submit();
+    },
+
+    sendMsg() {
+      this.$message({message:"上传成功",type:'success',duration:1500});
+      this.$refs.imageUploader.clearFiles();
+      this.file_id = this.path = this.path_full= "";
+      this.imageUrl = "";
+     
+      this.$emit("upload-image", {
+        file_id: this.file_id,
+        path: this.path,
+        path_full: this.path_full
+      });
     }
-
   }
 };
 </script>

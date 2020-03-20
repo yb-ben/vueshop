@@ -2,17 +2,17 @@
   <div class="app-container">
     <el-container>
       <el-header>
-        <h2>修改商品</h2>
+        <h2>添加商品</h2>
       </el-header>
 
       <el-main>
-        <el-form>
+        <el-form >
           <el-form-item label="商品名称" :label-width="formLabelWidth">
             <el-input v-model="title" autocomplete="off"></el-input>
           </el-form-item>
 
           <el-form-item label="价格" :label-width="formLabelWidth">
-            <el-input v-model="price" autocomplete="off"></el-input>
+            <el-input v-model="price"  autocomplete="off"></el-input>
           </el-form-item>
 
           <el-form-item label="划线价格" :label-width="formLabelWidth">
@@ -23,19 +23,29 @@
             <el-input v-model="count" autocomplete="off"></el-input>
           </el-form-item>
 
-          <el-form-item label="封面图" :label-width="formLabelWidth">
+          <!-- <el-form-item label="封面图" :label-width="formLabelWidth">
             <el-upload
               class="avatar-uploader"
               :action="uploadImageUrl"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload"
-            
+             
             >
-              <img v-if="imageUrl" :src="imageUrl" class="avatar" />
+              <img v-if="main_image_full" :src="main_image_full" class="avatar" />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
             </el-upload>
-          </el-form-item>
+          </el-form-item> -->
+          <el-form-item label="封面图" :label-width="formLabelWidth">
+            
+               <img v-if="main_image" :src="main_image_full" class="avatar" @click="visibleImageSelector = true"/>
+                  <i v-if="!main_image" class="el-icon-plus avatar-uploader-icon" @click="visibleImageSelector = true" ></i>
+               
+            </el-form-item>
+               
+             <ImageSelector :select-mode="1" @submit-images="handleSubmitImages" pid="addgoods" :visibleSelector.sync="visibleImageSelector"></ImageSelector>
+
+
 
           <el-form-item label="图集" :label-width="formLabelWidth">
             <el-upload
@@ -48,8 +58,6 @@
               :auto-upload="false"
               :limit="9"
                ref="mImage"
-               :file-list="mImageObj"
-               :multiple="true"
             >
               <i class="el-icon-plus"></i>
             </el-upload>
@@ -59,80 +67,10 @@
             <el-button @click="handleAddImage">上传</el-button>
           </el-form-item>
 
-          <cateSelecter @event1="onPostCid" :message='cateId' v-if="loadcomplete"></cateSelecter>
+          <cateSelecter v-if="cateId" @event1="onPostCid" :message="cateId" ></cateSelecter>
 
-          <el-form-item
-            v-for="(item,index) in cateAttrs"
-            :key="item.id"
-            :label="item.name"
-            :label-width="formLabelWidth"
-          >
-            <el-tag
-              :key="tag"
-              v-for="tag in item.values"
-              closable
-              :disable-transitions="false"
-              @close="handleClose(item,tag)"
-            >{{tag}}</el-tag>
 
-            <el-input
-              class="input-new-tag"
-              v-if="cateAttrs[index].inputVisible"
-              v-model="cateAttrs[index].inputValue"
-              :ref="'saveTagInput'+item.id"
-              size="small"
-              @keyup.enter.native="handleInputConfirm(item)"
-              @blur="handleInputConfirm(item)"
-            ></el-input>
-            <el-button v-else class="button-new-tag" size="small" @click="showInput(item)">+ New Tag</el-button>
-          </el-form-item>
-
-          <el-form-item
-            label="SKU"
-            :label-width="formLabelWidth"
-            v-if="cateAttrs && cateAttrs.length>0"
-          >
-            <el-table :data="sku">
-              <el-table-column label="属性">
-                <template v-slot="scope">
-                  <el-select
-                    v-for="i in cateAttrs"
-                    :key="i.id"
-                    v-model="scope.row[i.id]"
-                    style="width:120px;margin-right:5px"
-                    :placeholder="i.name"
-                    @change="specAttrChange(scope.row)"
-                  >
-                    <el-option v-for="v in i.values" :label="v" :value="v" :key="v"></el-option>
-                  </el-select>
-                </template>
-              </el-table-column>
-              <el-table-column label="价格" width="150">
-                <template v-slot="scope">
-                  <el-input v-model="scope.row.price"></el-input>
-                </template>
-              </el-table-column>
-              <el-table-column label="划线价格" width="150">
-                <template v-slot="scope">
-                  <el-input v-model="scope.row.line_price"></el-input>
-                </template>
-              </el-table-column>
-              <el-table-column label="库存" width="150">
-                <template v-slot="scope">
-                  <el-input v-model="scope.row.count"></el-input>
-                </template>
-              </el-table-column>
-
-              <el-table-column width="150">
-                <template v-slot="scope">
-                  <el-button @click="delSpec(scope.$index)" type="danger">删除</el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-            <el-button class="addSpecBtn" @click="addSpec" type="primary">
-              <div class="add"></div>
-            </el-button>
-          </el-form-item>
+          <spuComponent v-if="cacheResp" ref="spuComponent" :data="cacheResp"></spuComponent>
 
           <el-form-item label="商品详情" :label-width="formLabelWidth">
                <tinymce v-model="content" :height="300" />
@@ -151,45 +89,19 @@
 
 <script>
 import cateSelecter from "@/views/cate/cateSelecter";
-import { getAttrs } from "@/api/cate";
-import {editGoods , detail } from "@/api/goods";
+import {  getCateList } from "@/api/cate";
+import {editGoods , detail , attrs } from "@/api/goods";
 import {uploadImageUrl} from "@/api/upload";
 import Tinymce from '@/components/Tinymce';
-//主图
-const mImgHandler = {
-  
- handleAvatarSuccess(res, file) {
-   console.log(res);
-   if(res.code !== 0){
-     return false;
-   }
-   this.main_image = res.data.path;
-    this.imageUrl = URL.createObjectURL(file.raw);
-  },
-   beforeAvatarUpload(file) {
-    const isJPG = file.type === "image/jpeg";
-    const isLt2M = file.size / 1024 / 1024 < 2;
+import spuComponent from "@/views/spu/index";
+import ImageSelector from "@/views/imageSelector"
 
-    if (!isJPG) {
-      this.$message.error("上传头像图片只能是 JPG 格式!");
-    }
-    if (!isLt2M) {
-      this.$message.error("上传头像图片大小不能超过 2MB!");
-    }
-    return isJPG && isLt2M;
-  }
-};
+
+
 //图集
 const mainImgHandler = {
-  handleRemove(file, fileList) {
-    console.log(file, fileList);
-    if(file.id){
-      this.mImage.forEach((v,i)=>{
-        if(v.id !== undefined && v.id === file.id){
-          this.mImage.splice(i,1);return false;
-        }
-      });
-    }else if(file.response){
+  handleRemove(file, fileList) {   
+    if(file.response){
         this.mImage.forEach((v,i)=>{
           if(v.url === file.response.data.path){
             this.mImage.splice(i,1);return false;
@@ -209,66 +121,23 @@ const mainImgHandler = {
     if(res.code !== 0){
       return false;
     }
-    this.mImage.push({url:res.data.path});
-//    this.mImageObj.push({url:res.data.path_full});
+    this.mImage.push({url:res.data.path,file_id:res.data.file_id});
   },
 
   handleAddImage(file,fileList){
-    
     this.$refs.mImage.submit()
   },
 
   handleSelectImage(file,fileList){
- //   console.log(file,fileList);
+    console.log(file,fileList);
   }
  
-};
-//属性值
-const attrVal = {
-  handleClose(target, tag) {
-    target.values.splice(target.values.indexOf(tag), 1);
-    this.sku.forEach((v,i)=>{
-      if(v[target.id] === tag){
-        this.sku.splice(i,1);return false;
-      }
-    });
- //   this.sku = [{}];
-    this.$forceUpdate();
-    //this.$delete(target.values,target.values.indexOf(tag));
-  },
-
-  showInput(target) {
-    this.$set(target, "inputVisible", true);
-
-    this.$nextTick(_ => {
-
-        this.$refs["saveTagInput" + target.id][0].$refs.input.focus();
-  
-    });
-  },
-
-  handleInputConfirm(item) {
-    console.log(item);
-    let inputValue = item.inputValue;
-    if (inputValue) {
-      if (!item.values) {
-        item.values = [];
-      }
-      if (-1 === item.values.indexOf(inputValue)) {
-        item.values.push(inputValue);
-      } else {
-        return false;
-      }
-    }
-    item.inputVisible = false;
-    item.inputValue = "";
-  }
 };
 
 export default {
   name: "EditGoods",
   components: {
-    cateSelecter,Tinymce
+    cateSelecter,Tinymce,spuComponent,  ImageSelector
   },
   data() {
     return {
@@ -276,24 +145,23 @@ export default {
       imageUrl: "",
       dialogImageUrl: "",
       dialogVisible: false,
-      uploadImageUrl,
       mImage:[],
-      mImageObj:[],
-      inputVisible: false,
-      inputValue: "",
-      cateAttrs: [],
+      uploadImageUrl,
+     
       content:"",
-      sku: [
-        {}
-      ],
+     
       cateId:0,
       price:0,
       line_price:0,
       count:0,
       main_image:"",
-      title: "", 
-      loadcomplete:false,
-      id:""
+      main_image_full:null,
+      file_id:null,
+      title:"",
+
+      visibleImageSelector:false,
+
+      cacheResp:null,
     };
   },
 
@@ -304,6 +172,24 @@ export default {
     }
   },
 
+
+  created(){
+    let t = null;
+   Promise.all([ detail(this.$route.params.id),attrs()]).then(res=>{
+       let d0 = res[0].data;
+       this.cacheResp = d0;  
+       this.cateId = res[0].data.cate_id;
+       this.title = d0.title;
+       this.price = d0.price;
+       this.line_price = d0.line_price;
+   })
+    
+ 
+
+  
+
+  },
+
   computed: {
     attrLabel() {
       return this.cateAttrs.reduce(function(total, curr) {
@@ -312,41 +198,14 @@ export default {
     }
   },
 
-
-  created(){
-
-      this.loadData(this.$route.params.id)
-  },
-
   methods: {
     ...mainImgHandler,
-    ...mImgHandler,
-    ...attrVal,
     onPostCid(val) {
-
+      //选择分类
       this.cateId = val;
-      if (!val) {
-        this.cateAttrs = [];
-      } else {
-        getAttrs( this.cateId )
-          .then(resp => {
-            resp.data.forEach(v => {
-              v.inputVisible =false;
-              v.inputValue = "";
-              v.values = [];
-              this.attrValuesMap.forEach(va =>{
-                  if(va.attr_id === v.id)
-                    v.values.push(va.val);   
-              });
-
-            });
-            
-            
-            this.cateAttrs = resp.data;
-          })
-          .catch(err => {});
-      }
     },
+
+
 
     //添加规格项
     addSpec() {
@@ -364,65 +223,54 @@ export default {
       this.$delete(this.sku, i);
     },
 
-
-    loadData(id){
-        detail(id).then(resp=>{
-            let d = resp.data;
-            this.id= id;
-            this.cateId = d.cate_id;
-            this.title = d.title;
-            this.main_image = d.main_image;
-            this.imageUrl = d.main_image_full;
-            d.gallery.forEach((v)=>{
-                this.mImage.push({ id:v.id , url:v.img});
-                this.mImageObj.push({id:v.id,url:v.img_full});
-            });
-
-            this.price = d.price;
-            this.line_price = d.line_price;
-            this.count = d.count;
-            this.content = d.content.content;
-            this.loadcomplete = true;
-
-            this.attrValuesMap = d.values;
-            let t = [];
-             d.specs.forEach(v=>{
-               t.push({price:v.price,line_price:v.line_price,count:v.count,...v.spu});
-             });
-            this.sku = t;
-        }).catch(err=>{
-
-        });
-    },
    
+            handleSubmitImages(val) {
+              //主图选择
+                console.log(val);
+                if(val && val.length > 0){
+                    this.main_image_full = val[0].url_full;
+                    this.main_image = val[0].url;
+                    this.file_id = val[0].id ;
+                    this.$forceUpdate();
+                }
+            },
 
     //提交表单
     submitForm(){
+      let t =this.$refs.spuComponent;
+      
+      let a = [];
+      if(t.cacheValidAttrs){
+          t.cacheValidAttrs.forEach(x=>{
+            let vals = [];
+            x.values.forEach(v=>{
+              vals.push({v:v.id,v_id:v.v_id,path:v.v.path});
+            });
+            a.push({k:x.k,k_id:x.k_id,values:vals})
+        });
+     
+      }
+
       let d = {
         'title':this.title,
         'main_image':this.main_image,
         'mImage':this.mImage,
         'cate_id' : this.cateId,
-        'attrValues': this.cateAttrs,
-        'sku': this.sku,
+         'price':this.price,
+         'line_price': this.line_price,
+         'file_id' : this.file_id,
         'content':this.content,
-        'id' : this.id,
-        'price' : this.price,
-        'line_price':this.line_price,
-        'count' : this.count,
-        
+        'count':this.count,
+        'code' : '',
+        'how':1,
+        'sku':t.spu,
+        'spu':a,
       };
-      let t = [];
-      d.sku.forEach(function(v){
-         if( Object.keys(v).length !== 0){
-           t.push(v);
-         }
-      });
-      d.sku = t;
+        
       editGoods(d).then(resp=>{
         if(resp.code === 0){
           this.$message({
-            message: '修改成功',
+            message: '添加成功',
             type: 'success',
             onClose:()=>{
               this.$router.push('/goods/index');
