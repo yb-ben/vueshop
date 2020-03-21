@@ -5,9 +5,8 @@
       width="50%"
       @close="onDialogClose"
       @closed="onClosed"
-      @open="getImageList();"
       title="图片选择"
-
+     
     >
       <div v-if="nowPage === 'imageUpload'" slot="title" class="header-title">
         <el-page-header @back="jumpToHome" content="图片选择"></el-page-header>
@@ -70,7 +69,7 @@
       </div>
 
       <span v-if="nowPage === 'home'" slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button @click="closeDialog">取 消</el-button>
         <el-button type="primary" @click="submit">确 定</el-button>
       </span>
     </el-dialog>
@@ -84,7 +83,7 @@ import imageUploader from "./imageUploader";
 
 export default {
   name: "ImageSelector",
-  props: ["selectMode", "pid","visibleSelector"],
+  props: ["selectMode", "visibleSelector"],
   components: {
     imageUploader
   },
@@ -106,12 +105,14 @@ export default {
       lastResp: null,
 
       sm: this.selectMode ,//1单选 2多选
-      pid_: this.pid,
+     
 
     };
   },
 
   created() {
+
+    this.getImageList();
   },
 
 
@@ -130,15 +131,24 @@ export default {
 
 
   methods: {
+
+    closeDialog(){
+
+      this.dialogVisible = false;
+      this.onDialogClose();
+    },
+
     onDialogClose() {
       //关闭图片选择器
+      console.log('dialogClose');
+      this.jumpToHome();
+      document.getElementsByTagName('body')[0].style.overflow = 'auto';
+  
     },
 
     onClosed() {
       //关闭回调
-            console.log('Closed');
-      this.jumpToHome();
-        document.getElementsByTagName('body')[0].style.overflow = 'auto';
+      console.log('Closed');
     },
 
     jumpToImageUpload() {
@@ -198,8 +208,8 @@ export default {
         }
       });
       this.$emit("submit-images", ret);
-      this.dialogVisible = false;
-    
+     
+      this.closeDialog();
     },
 
   }

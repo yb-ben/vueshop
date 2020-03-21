@@ -23,48 +23,38 @@
             <el-input v-model="count" autocomplete="off"></el-input>
           </el-form-item>
 
-          <!-- <el-form-item label="封面图" :label-width="formLabelWidth">
-            <el-upload
-              class="avatar-uploader"
-              :action="uploadImageUrl"
-              :show-file-list="false"
-              :on-success="handleAvatarSuccess"
-              :before-upload="beforeAvatarUpload"
-             
-            >
-              <img v-if="main_image_full" :src="main_image_full" class="avatar" />
-              <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-            </el-upload>
-          </el-form-item> -->
+        
           <el-form-item label="封面图" :label-width="formLabelWidth">
             
-               <img v-if="main_image" :src="main_image_full" class="avatar" @click="visibleImageSelector = true"/>
-                  <i v-if="!main_image" class="el-icon-plus avatar-uploader-icon" @click="visibleImageSelector = true" ></i>
+               <img v-if="main_image" :src="main_image_full" class="avatar" @click="visibleImageSelector = true,selectModel=1"/>
+                  <i v-if="!main_image" class="el-icon-plus avatar-uploader-icon"   style="border: 1px dashed #c0ccda;
+    border-radius: 6px;" @click="visibleImageSelector = true,selectModel=1" ></i>
                
             </el-form-item>
                
-             <ImageSelector :select-mode="1" @submit-images="handleSubmitImages" pid="addgoods" :visibleSelector.sync="visibleImageSelector"></ImageSelector>
+             <ImageSelector   v-if="visibleImageSelector"  :select-mode="selectModel" @submit-images="handleSubmitImages"  :visibleSelector.sync="visibleImageSelector"></ImageSelector>
 
 
 
+         
           <el-form-item label="图集" :label-width="formLabelWidth">
-            <el-upload
-              :action="uploadImageUrl"
-              list-type="picture-card"
-              :on-preview="handlePictureCardPreview"
-              :on-remove="handleRemove"
-              :on-success="handleSucess"
-              :on-change="handleSelectImage"
-              :auto-upload="false"
-              :limit="9"
-               ref="mImage"
-            >
-              <i class="el-icon-plus"></i>
-            </el-upload>
-            <el-dialog :visible.sync="dialogVisible">
-              <img width="100%" :src="dialogImageUrl" alt />
-            </el-dialog>
-            <el-button @click="handleAddImage">上传</el-button>
+            <div class="mImage-item"  v-for="(v,i) in mImage" :key="v.file_id">
+              <img
+                v-if="v.url"
+                :src="v.url_full"
+                class="avatar"
+                @click="visibleImageSelector = true,selectModel = 2"
+              />
+              <i class="el-icon-close" @click="removeImage(i)"></i>
+            </div>
+            <div style="display:inline-block;vertical-align:top">
+              <i
+                class="el-icon-plus avatar-uploader-icon"
+                style="border: 1px dashed #c0ccda;
+              border-radius: 6px;"
+                @click="visibleImageSelector = true,selectModel = 2"
+              ></i>
+            </div>
           </el-form-item>
 
           <cateSelecter @event1="onPostCid" ></cateSelecter>
@@ -96,68 +86,6 @@ import Tinymce from '@/components/Tinymce';
 import spuComponent from "@/views/spu/index";
 import ImageSelector from "@/views/imageSelector"
 
-//主图
-const mImgHandler = {
-  
- handleAvatarSuccess(res, file) {
-   console.log(res);
-   if(res.code !== 0){
-     return false;
-   }
-    this.main_image = res.data.path;
-    this.file_id = res.data.file_id;
-    this.main_image_full = URL.createObjectURL(file.raw);
-  },
-   beforeAvatarUpload(file) {
-    const isJPG = file.type === "image/jpeg";
-    const isLt2M = file.size / 1024 / 1024 < 2;
-
-    if (!isJPG) {
-      this.$message.error("上传头像图片只能是 JPG 格式!");
-    }
-    if (!isLt2M) {
-      this.$message.error("上传头像图片大小不能超过 2MB!");
-    }
-    return isJPG && isLt2M;
-  }
-};
-
-
-//图集
-const mainImgHandler = {
-  handleRemove(file, fileList) {   
-    if(file.response){
-        this.mImage.forEach((v,i)=>{
-          if(v.url === file.response.data.path){
-            this.mImage.splice(i,1);return false;
-          }
-        });
-    }
-
-  },
-   handlePictureCardPreview(file) {
-     console.log(file);
-    this.dialogImageUrl = file.url;
-    this.dialogVisible = true;
-  },
-
-  handleSucess(res,file){
-    console.log(res,file);
-    if(res.code !== 0){
-      return false;
-    }
-    this.mImage.push({url:res.data.path,file_id:res.data.file_id});
-  },
-
-  handleAddImage(file,fileList){
-    this.$refs.mImage.submit()
-  },
-
-  handleSelectImage(file,fileList){
-    console.log(file,fileList);
-  }
- 
-};
 
 export default {
   name: "AddGoods",
@@ -185,6 +113,7 @@ export default {
       title:"",
 
       visibleImageSelector:false,
+      selectModel:1,
     };
   },
 
@@ -204,8 +133,6 @@ export default {
   },
 
   methods: {
-    ...mainImgHandler,
-    ...mImgHandler,
     onPostCid(val) {
       //选择分类
       this.cateId = val;
@@ -229,18 +156,33 @@ export default {
       console.log(i);
       this.$delete(this.sku, i);
     },
+    removeImage( i) {
+      //移除图片
+        this.mImage.splice(i,1);
+    },
 
    
-            handleSubmitImages(val) {
-              //主图选择
-                console.log(val);
-                if(val && val.length > 0){
-                    this.main_image_full = val[0].url_full;
-                    this.main_image = val[0].url;
-                    this.file_id = val[0].id ;
-                    this.$forceUpdate();
-                }
-            },
+        handleSubmitImages(val) {
+      //主图选择
+      console.log(val);
+      if (val) {
+        if (this.selectModel === 1) {
+          this.main_image_full = val[0].url_full;
+          this.main_image = val[0].url;
+          this.file_id = val[0].id;
+        } else if (this.selectModel === 2) {
+          if(val.length + this.mImage.length < 10){
+          
+          val.forEach(v=>{
+            this.mImage.push({ file_id: v.file_id, url: v.url , url_full:v.url_full});
+          });
+       
+          }else{
+            this.$message({message:'图集不能超过9张',type:'error',duration:1000});
+          } 
+          }
+      }
+    },
 
     //提交表单
     submitForm(){
@@ -369,5 +311,28 @@ export default {
   margin-left: -2px;
   margin-top: -10px;
   border-left: 5px solid;
+}
+
+
+
+.mImage-item{
+  display: inline-block;
+  position: relative;
+  margin-right:10px;
+}
+
+
+i.el-icon-close {
+  position: absolute;
+  color: #ffffff00;
+  padding: 2px;
+  border-radius: 10px;
+  right: 0px;
+  top: 0px;
+}
+
+i.el-icon-close:hover {
+  background-color: #aaa;
+  color: white;
 }
 </style>

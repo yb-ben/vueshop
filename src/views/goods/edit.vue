@@ -2,17 +2,17 @@
   <div class="app-container">
     <el-container>
       <el-header>
-        <h2>添加商品</h2>
+        <h2>编辑商品</h2>
       </el-header>
 
       <el-main>
-        <el-form >
+        <el-form>
           <el-form-item label="商品名称" :label-width="formLabelWidth">
             <el-input v-model="title" autocomplete="off"></el-input>
           </el-form-item>
 
           <el-form-item label="价格" :label-width="formLabelWidth">
-            <el-input v-model="price"  autocomplete="off"></el-input>
+            <el-input v-model="price" autocomplete="off"></el-input>
           </el-form-item>
 
           <el-form-item label="划线价格" :label-width="formLabelWidth">
@@ -23,64 +23,60 @@
             <el-input v-model="count" autocomplete="off"></el-input>
           </el-form-item>
 
-          <!-- <el-form-item label="封面图" :label-width="formLabelWidth">
-            <el-upload
-              class="avatar-uploader"
-              :action="uploadImageUrl"
-              :show-file-list="false"
-              :on-success="handleAvatarSuccess"
-              :before-upload="beforeAvatarUpload"
-             
-            >
-              <img v-if="main_image_full" :src="main_image_full" class="avatar" />
-              <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-            </el-upload>
-          </el-form-item> -->
           <el-form-item label="封面图" :label-width="formLabelWidth">
-            
-               <img v-if="main_image" :src="main_image_full" class="avatar" @click="visibleImageSelector = true"/>
-                  <i v-if="!main_image" class="el-icon-plus avatar-uploader-icon" @click="visibleImageSelector = true" ></i>
-               
-            </el-form-item>
-               
-             <ImageSelector :select-mode="1" @submit-images="handleSubmitImages" pid="addgoods" :visibleSelector.sync="visibleImageSelector"></ImageSelector>
-
-
-
-          <el-form-item label="图集" :label-width="formLabelWidth">
-            <el-upload
-              :action="uploadImageUrl"
-              list-type="picture-card"
-              :on-preview="handlePictureCardPreview"
-              :on-remove="handleRemove"
-              :on-success="handleSucess"
-              :on-change="handleSelectImage"
-              :auto-upload="false"
-              :limit="9"
-               ref="mImage"
-            >
-              <i class="el-icon-plus"></i>
-            </el-upload>
-            <el-dialog :visible.sync="dialogVisible">
-              <img width="100%" :src="dialogImageUrl" alt />
-            </el-dialog>
-            <el-button @click="handleAddImage">上传</el-button>
+            <img
+              v-if="main_image"
+              :src="main_image_full"
+              class="avatar"
+              @click="visibleImageSelector = true,selectModel = 1"
+            />
+            <i
+              v-if="!main_image"
+              class="el-icon-plus avatar-uploader-icon"
+              style="border: 1px dashed #c0ccda;
+    border-radius: 6px;"
+              @click="visibleImageSelector = true,selectModel = 1"
+            ></i>
           </el-form-item>
 
-          <cateSelecter v-if="cateId" @event1="onPostCid" :message="cateId" ></cateSelecter>
+          <ImageSelector
+            v-if="visibleImageSelector"
+            :select-mode="selectModel"
+            @submit-images="handleSubmitImages"
+            :visibleSelector.sync="visibleImageSelector"
+          ></ImageSelector>
 
+          <el-form-item label="图集" :label-width="formLabelWidth">
+            <div class="mImage-item"  v-for="(v,i) in mImage" :key="v.file_id">
+              <img
+                v-if="v.url"
+                :src="v.url_full"
+                class="avatar"
+                @click="visibleImageSelector = true,selectModel = 2"
+              />
+              <i class="el-icon-close" @click="removeImage(i)"></i>
+            </div>
+            <div style="display:inline-block;vertical-align:top">
+              <i
+                class="el-icon-plus avatar-uploader-icon"
+                style="border: 1px dashed #c0ccda;
+              border-radius: 6px;"
+                @click="visibleImageSelector = true,selectModel = 2"
+              ></i>
+            </div>
+          </el-form-item>
 
-          <spuComponent v-if="cacheResp" ref="spuComponent" :data="cacheResp"></spuComponent>
+          <cateSelecter v-if="cateId" @event1="onPostCid" :message="cateId"></cateSelecter>
+
+          <spuComponent v-if="cacheResp" ref="spuComponent" :initResp="cacheResp"></spuComponent>
 
           <el-form-item label="商品详情" :label-width="formLabelWidth">
-               <tinymce v-model="content" :height="300" />
+            <tinymce v-model="content" :height="300" />
           </el-form-item>
 
           <el-form-item label=" " :label-width="formLabelWidth">
             <el-button type="primary" @click="submitForm">提交</el-button>
           </el-form-item>
-
-          
         </el-form>
       </el-main>
     </el-container>
@@ -89,55 +85,22 @@
 
 <script>
 import cateSelecter from "@/views/cate/cateSelecter";
-import {  getCateList } from "@/api/cate";
-import {editGoods , detail , attrs } from "@/api/goods";
-import {uploadImageUrl} from "@/api/upload";
-import Tinymce from '@/components/Tinymce';
+import { getCateList } from "@/api/cate";
+import { editGoods, detail, attrs, values } from "@/api/goods";
+import { uploadImageUrl } from "@/api/upload";
+import Tinymce from "@/components/Tinymce";
 import spuComponent from "@/views/spu/index";
-import ImageSelector from "@/views/imageSelector"
+import ImageSelector from "@/views/imageSelector";
 
 
-
-//图集
-const mainImgHandler = {
-  handleRemove(file, fileList) {   
-    if(file.response){
-        this.mImage.forEach((v,i)=>{
-          if(v.url === file.response.data.path){
-            this.mImage.splice(i,1);return false;
-          }
-        });
-    }
-
-  },
-   handlePictureCardPreview(file) {
-     console.log(file);
-    this.dialogImageUrl = file.url;
-    this.dialogVisible = true;
-  },
-
-  handleSucess(res,file){
-    console.log(res,file);
-    if(res.code !== 0){
-      return false;
-    }
-    this.mImage.push({url:res.data.path,file_id:res.data.file_id});
-  },
-
-  handleAddImage(file,fileList){
-    this.$refs.mImage.submit()
-  },
-
-  handleSelectImage(file,fileList){
-    console.log(file,fileList);
-  }
- 
-};
 
 export default {
   name: "EditGoods",
   components: {
-    cateSelecter,Tinymce,spuComponent,  ImageSelector
+    cateSelecter,
+    Tinymce,
+    spuComponent,
+    ImageSelector
   },
   data() {
     return {
@@ -145,23 +108,24 @@ export default {
       imageUrl: "",
       dialogImageUrl: "",
       dialogVisible: false,
-      mImage:[],
+      mImage: [],
       uploadImageUrl,
-     
-      content:"",
-     
-      cateId:0,
-      price:0,
-      line_price:0,
-      count:0,
-      main_image:"",
-      main_image_full:null,
-      file_id:null,
-      title:"",
 
-      visibleImageSelector:false,
+      content: "",
+      id: 0,
+      cateId: 0,
+      price: 0,
+      line_price: 0,
+      count: 0,
+      main_image: "",
+      main_image_full: null,
+      file_id: null,
+      title: "",
 
-      cacheResp:null,
+      visibleImageSelector: false,
+
+      cacheResp: null,
+      selectModel: 1
     };
   },
 
@@ -172,22 +136,22 @@ export default {
     }
   },
 
-
-  created(){
+  created() {
     let t = null;
-   Promise.all([ detail(this.$route.params.id),attrs()]).then(res=>{
-       let d0 = res[0].data;
-       this.cacheResp = d0;  
-       this.cateId = res[0].data.cate_id;
-       this.title = d0.title;
-       this.price = d0.price;
-       this.line_price = d0.line_price;
-   })
-    
- 
-
-  
-
+    //获取商品详细信息和属性列表
+    Promise.all([detail(this.$route.params.id)]).then(res => {
+      let d0 = res[0].data;
+      this.id = d0.id;
+      this.cacheResp = d0;
+      this.cateId = res[0].data.cate_id;
+      this.title = d0.title;
+      this.price = d0.price;
+      this.line_price = d0.line_price;
+      this.main_image = d0.main_image;
+      this.main_image_full = d0.main_image_full;
+      this.file_id = d0.file_id;
+      this.content = d0.content.content;
+    });
   },
 
   computed: {
@@ -199,13 +163,16 @@ export default {
   },
 
   methods: {
-    ...mainImgHandler,
+    
+        removeImage( i) {
+      //移除图片
+        this.mImage.splice(i,1);
+    },
+
     onPostCid(val) {
       //选择分类
       this.cateId = val;
     },
-
-
 
     //添加规格项
     addSpec() {
@@ -223,63 +190,82 @@ export default {
       this.$delete(this.sku, i);
     },
 
-   
-            handleSubmitImages(val) {
-              //主图选择
-                console.log(val);
-                if(val && val.length > 0){
-                    this.main_image_full = val[0].url_full;
-                    this.main_image = val[0].url;
-                    this.file_id = val[0].id ;
-                    this.$forceUpdate();
-                }
-            },
+    handleSubmitImages(val) {
+      //主图选择
+      console.log(val);
+      if (val) {
+        if (this.selectModel === 1) {
+          this.main_image_full = val[0].url_full;
+          this.main_image = val[0].url;
+          this.file_id = val[0].id;
+        } else if (this.selectModel === 2) {
+          if(val.length + this.mImage.length < 10){
+          
+          val.forEach(v=>{
+            this.mImage.push({ file_id: v.file_id, url: v.url , url_full:v.url_full});
+          });
+       
+          }else{
+            this.$message({message:'图集不能超过9张',type:'error',duration:1000});
+          } 
+          }
+      }
+    },
 
     //提交表单
-    submitForm(){
-      let t =this.$refs.spuComponent;
-      
+    submitForm() {
+      let t = this.$refs.spuComponent;
+
       let a = [];
-      if(t.cacheValidAttrs){
-          t.cacheValidAttrs.forEach(x=>{
-            let vals = [];
-            x.values.forEach(v=>{
-              vals.push({v:v.id,v_id:v.v_id,path:v.v.path});
-            });
-            a.push({k:x.k,k_id:x.k_id,values:vals})
+      if (t.cacheValidAttrs) {
+        t.cacheValidAttrs.forEach(x => {
+          let vals = [];
+          x.values.forEach(v => {
+            if (t.isAddSPUImg) {
+              vals.push({
+                v: v.v,
+                v_id: v.v_id,
+                path: v.path,
+                file_id: v.file_id
+              });
+            } else {
+              vals.push({ v: v.v, v_id: v.v_id });
+            }
+          });
+          a.push({ k: x.k, k_id: x.k_id, values: vals });
         });
-     
       }
 
       let d = {
-        'title':this.title,
-        'main_image':this.main_image,
-        'mImage':this.mImage,
-        'cate_id' : this.cateId,
-         'price':this.price,
-         'line_price': this.line_price,
-         'file_id' : this.file_id,
-        'content':this.content,
-        'count':this.count,
-        'code' : '',
-        'how':1,
-        'sku':t.spu,
-        'spu':a,
+        id: this.id,
+        title: this.title,
+        main_image: this.main_image,
+        mImage: this.mImage,
+        cate_id: this.cateId,
+        price: this.price,
+        line_price: this.line_price,
+        file_id: this.file_id,
+        content: this.content,
+        count: this.count,
+        code: "",
+        how: 1,
+        sku: t.spu,
+        spu: a
       };
-        
-      editGoods(d).then(resp=>{
-        if(resp.code === 0){
-          this.$message({
-            message: '添加成功',
-            type: 'success',
-            onClose:()=>{
-              this.$router.push('/goods/index');
-            }
-          });
-        }
-      }).catch(err=>{
 
-      });
+      editGoods(d)
+        .then(resp => {
+          if (resp.code === 0) {
+            this.$message({
+              message: "保存成功",
+              type: "success",
+              onClose: () => {
+                this.$router.push("/goods/index");
+              }
+            });
+          }
+        })
+        .catch(err => {});
     }
   }
 };
@@ -312,6 +298,7 @@ export default {
 </style>
 
 <style>
+
 .el-tag + .el-tag {
   margin-left: 10px;
 }
@@ -362,5 +349,26 @@ export default {
   margin-left: -2px;
   margin-top: -10px;
   border-left: 5px solid;
+}
+
+.mImage-item{
+  display: inline-block;
+  position: relative;
+  margin-right:10px;
+}
+
+
+i.el-icon-close {
+  position: absolute;
+  color: #ffffff00;
+  padding: 2px;
+  border-radius: 10px;
+  right: 0px;
+  top: 0px;
+}
+
+i.el-icon-close:hover {
+  background-color: #aaa;
+  color: white;
 }
 </style>
