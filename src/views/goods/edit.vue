@@ -33,8 +33,7 @@
             <i
               v-if="!main_image"
               class="el-icon-plus avatar-uploader-icon"
-              style="border: 1px dashed #c0ccda;
-    border-radius: 6px;"
+              style="border: 1px dashed #c0ccda;border-radius: 6px;"
               @click="visibleImageSelector = true,selectModel = 1"
             ></i>
           </el-form-item>
@@ -52,15 +51,13 @@
                 v-if="v.url"
                 :src="v.url_full"
                 class="avatar"
-                @click="visibleImageSelector = true,selectModel = 2"
               />
               <i class="el-icon-close" @click="removeImage(i)"></i>
             </div>
             <div style="display:inline-block;vertical-align:top">
               <i
                 class="el-icon-plus avatar-uploader-icon"
-                style="border: 1px dashed #c0ccda;
-              border-radius: 6px;"
+                style="border: 1px dashed #c0ccda;border-radius: 6px;"
                 @click="visibleImageSelector = true,selectModel = 2"
               ></i>
             </div>
@@ -151,6 +148,9 @@ export default {
       this.main_image_full = d0.main_image_full;
       this.file_id = d0.file_id;
       this.content = d0.content.content;
+      this.count = d0.count;
+
+      this.mImage = d0.gallery;
     });
   },
 
@@ -202,7 +202,7 @@ export default {
           if(val.length + this.mImage.length < 10){
           
           val.forEach(v=>{
-            this.mImage.push({ file_id: v.file_id, url: v.url , url_full:v.url_full});
+            this.mImage.push({ file_id: v.id, url: v.url , url_full:v.url_full});
           });
        
           }else{
@@ -264,8 +264,7 @@ export default {
               }
             });
           }
-        })
-        .catch(err => {});
+        });
     }
   }
 };

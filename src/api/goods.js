@@ -92,4 +92,26 @@ export function addValue(data,params){
   })
 }
 
+//上架
+export function takeUp(data,params){
+  return request({
+
+      url:BASEURL+'/api/v1/admin/goods/takeUp',
+      method:'post',
+      data:{ids:data},
+      params
+  })
+}
+
+//下架
+export function takeDown(data,params){
+  return request({
+
+      url:BASEURL+'/api/v1/admin/goods/takeDown',
+      method:'post',
+      data:{ids:data},
+      params
+  })
+}
+
 

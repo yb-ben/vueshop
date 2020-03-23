@@ -174,7 +174,7 @@ export default {
           if(val.length + this.mImage.length < 10){
           
           val.forEach(v=>{
-            this.mImage.push({ file_id: v.file_id, url: v.url , url_full:v.url_full});
+            this.mImage.push({ file_id: v.id, url: v.url , url_full:v.url_full});
           });
        
           }else{
@@ -189,15 +189,23 @@ export default {
       let t =this.$refs.spuComponent;
       
       let a = [];
-      if(t.cacheValidAttrs){
-          t.cacheValidAttrs.forEach(x=>{
-            let vals = [];
-            x.values.forEach(v=>{
-              vals.push({v:v.id,v_id:v.v_id,path:v.v.path});
-            });
-            a.push({k:x.k,k_id:x.k_id,values:vals})
+       if (t.cacheValidAttrs) {
+        t.cacheValidAttrs.forEach(x => {
+          let vals = [];
+          x.values.forEach(v => {
+            if (t.isAddSPUImg) {
+              vals.push({
+                v: v.v,
+                v_id: v.v_id,
+                path: v.path,
+                file_id: v.file_id
+              });
+            } else {
+              vals.push({ v: v.v, v_id: v.v_id });
+            }
+          });
+          a.push({ k: x.k, k_id: x.k_id, values: vals });
         });
-     
       }
 
       let d = {

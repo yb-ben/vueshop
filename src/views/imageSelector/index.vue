@@ -55,7 +55,7 @@
           <el-form-item label="网络图片">
             <el-input v-model="networkImageUrl" style="width: 80%"></el-input>
 
-            <el-button>提取</el-button>
+            <el-button @click="onGetNetworkImage">提取</el-button>
           </el-form-item>
 
           <el-form-item label="本地图片">
@@ -80,6 +80,7 @@
 <script>
 import { uploadImageUrl, imageList } from "@/api/upload";
 import imageUploader from "./imageUploader";
+import { getNetworkImage } from "@/utils/common";
 
 export default {
   name: "ImageSelector",
@@ -212,6 +213,10 @@ export default {
       this.closeDialog();
     },
 
+
+    onGetNetworkImage(){
+
+    }
   }
 };
 </script>
