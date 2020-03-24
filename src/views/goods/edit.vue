@@ -67,6 +67,48 @@
 
           <spuComponent v-if="cacheResp" ref="spuComponent" :initResp="cacheResp"></spuComponent>
 
+          <el-form-item label="上架时间" :label-width="formLabelWidth">
+            <el-radio-group v-model="up_status" @change="onUpStatusChange">
+              <el-radio :label="0">暂不上架</el-radio>
+              <el-radio :label="1">立即上架</el-radio>
+              <el-radio :label="3">定时上架</el-radio>
+            </el-radio-group>
+            <el-date-picker
+              v-if="up_status === 3"
+              v-model="up_at"
+              type="datetime"
+              placeholder="选择日期时间"
+              value-format="timestamp"
+            ></el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="限购" :label-width="formLabelWidth">
+            <el-checkbox :label="1" @change="onLimitChange" :checked="(limit && limit[0])?true:false">限制每人可购买数量</el-checkbox>
+            <div>
+              <el-radio-group v-if="limit" v-model="limit[0].type" >
+                <el-row style="margin-bottom:10px">
+                  <el-radio :label="1">
+                    终身限购
+                    <el-input-number v-model="limit[0].count" :min="1"></el-input-number>
+件
+                  </el-radio>
+                </el-row>
+                <el-row style="margin-bottom:10px">
+                  <el-radio :label="2">
+                    按周期限购
+                    <el-select v-model="limit[0].circle" style="width:100px">
+                      <el-option :value="1" label="每天"></el-option>
+                      <el-option :value="2" label="每周"></el-option>
+                      <el-option :value="3" label="每月"></el-option>
+                    </el-select>
+                    <el-input-number v-model="limit[0].circle_count" :min="1"  label="描述文字"></el-input-number>
+件
+                  </el-radio>
+                </el-row>
+              </el-radio-group>
+            </div>
+          </el-form-item>
+
           <el-form-item label="商品详情" :label-width="formLabelWidth">
             <tinymce v-model="content" :height="300" />
           </el-form-item>
@@ -107,6 +149,9 @@ export default {
       dialogVisible: false,
       mImage: [],
       uploadImageUrl,
+      visibleImageSelector: false,
+      cacheResp: null,
+      selectModel: 1,
 
       content: "",
       id: 0,
@@ -118,11 +163,11 @@ export default {
       main_image_full: null,
       file_id: null,
       title: "",
-
-      visibleImageSelector: false,
-
-      cacheResp: null,
-      selectModel: 1
+      up_at: null,
+      status: 0,
+      up_status: 0,
+      least: 1,
+      limit: null
     };
   },
 
@@ -151,6 +196,10 @@ export default {
       this.count = d0.count;
 
       this.mImage = d0.gallery;
+      this.status = d0.status;
+      this.up_at = d0.up_at?d0.up_at*1000:d0.up_at;
+      this.limit = d0.limit;
+      this.up_status = (d0.up_at && d0.status === 0)?3:d0.status
     });
   },
 
@@ -168,6 +217,39 @@ export default {
       //移除图片
         this.mImage.splice(i,1);
     },
+
+    
+    onLimitChange(v) {
+      //限购
+      if (v) {
+        this.limit = [
+          {
+            type: 1,
+            count: null,
+            circle: 1,
+            circle_count:1,
+          }
+        ];
+      } else {
+        this.limit = null;
+      }
+    },
+
+    // onLeastBlur() {
+    //   this.least || (this.least = 1);
+    // },
+
+    onUpStatusChange(v) {
+      //上架方式变更
+      if (v === 3) {
+        this.status = 0;
+      } else {
+        this.status = v;
+
+        this.up_at = null;
+      }
+    },
+
 
     onPostCid(val) {
       //选择分类
@@ -250,7 +332,10 @@ export default {
         code: "",
         how: 1,
         sku: t.spu,
-        spu: a
+        spu: a,
+        up_at: this.up_at?this.up_at/1000:this.up_at,
+        status: this.status,
+        limit : this.limit
       };
 
       editGoods(d)

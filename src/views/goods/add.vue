@@ -6,13 +6,13 @@
       </el-header>
 
       <el-main>
-        <el-form >
+        <el-form>
           <el-form-item label="商品名称" :label-width="formLabelWidth">
             <el-input v-model="title" autocomplete="off"></el-input>
           </el-form-item>
 
           <el-form-item label="价格" :label-width="formLabelWidth">
-            <el-input v-model="price"  autocomplete="off"></el-input>
+            <el-input v-model="price" autocomplete="off"></el-input>
           </el-form-item>
 
           <el-form-item label="划线价格" :label-width="formLabelWidth">
@@ -23,22 +23,31 @@
             <el-input v-model="count" autocomplete="off"></el-input>
           </el-form-item>
 
-        
           <el-form-item label="封面图" :label-width="formLabelWidth">
-            
-               <img v-if="main_image" :src="main_image_full" class="avatar" @click="visibleImageSelector = true,selectModel=1"/>
-                  <i v-if="!main_image" class="el-icon-plus avatar-uploader-icon"   style="border: 1px dashed #c0ccda;
-    border-radius: 6px;" @click="visibleImageSelector = true,selectModel=1" ></i>
-               
-            </el-form-item>
-               
-             <ImageSelector   v-if="visibleImageSelector"  :select-mode="selectModel" @submit-images="handleSubmitImages"  :visibleSelector.sync="visibleImageSelector"></ImageSelector>
+            <img
+              v-if="main_image"
+              :src="main_image_full"
+              class="avatar"
+              @click="visibleImageSelector = true,selectModel=1"
+            />
+            <i
+              v-if="!main_image"
+              class="el-icon-plus avatar-uploader-icon"
+              style="border: 1px dashed #c0ccda;
+    border-radius: 6px;"
+              @click="visibleImageSelector = true,selectModel=1"
+            ></i>
+          </el-form-item>
 
+          <ImageSelector
+            v-if="visibleImageSelector"
+            :select-mode="selectModel"
+            @submit-images="handleSubmitImages"
+            :visibleSelector.sync="visibleImageSelector"
+          ></ImageSelector>
 
-
-         
           <el-form-item label="图集" :label-width="formLabelWidth">
-            <div class="mImage-item"  v-for="(v,i) in mImage" :key="v.file_id">
+            <div class="mImage-item" v-for="(v,i) in mImage" :key="v.file_id">
               <img
                 v-if="v.url"
                 :src="v.url_full"
@@ -57,20 +66,64 @@
             </div>
           </el-form-item>
 
-          <cateSelecter @event1="onPostCid" ></cateSelecter>
-
+          <cateSelecter @event1="onPostCid"></cateSelecter>
 
           <spuComponent ref="spuComponent"></spuComponent>
 
+          <el-form-item label="上架时间" :label-width="formLabelWidth">
+            <el-radio-group v-model="up_status" @change="onUpStatusChange">
+              <el-radio :label="0">暂不上架</el-radio>
+              <el-radio :label="1">立即上架</el-radio>
+              <el-radio :label="3">定时上架</el-radio>
+            </el-radio-group>
+            <el-date-picker
+              v-if="up_status === 3"
+              v-model="up_at"
+              type="datetime"
+              placeholder="选择日期时间"
+              value-format="timestamp"
+            ></el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="限购" :label-width="formLabelWidth">
+            <el-checkbox :label="1" @change="onLimitChange">限制每人可购买数量</el-checkbox>
+            <div>
+              <el-radio-group v-if="limit" v-model="limit[0].type" >
+                <el-row style="margin-bottom:10px">
+                  <el-radio :label="1">
+                    终身限购
+                    <el-input-number v-model="limit[0].count" :min="1"></el-input-number>
+件
+                  </el-radio>
+                </el-row>
+                <el-row style="margin-bottom:10px">
+                  <el-radio :label="2">
+                    按周期限购
+                    <el-select v-model="limit[0].circle" style="width:100px">
+                      <el-option :value="1" label="每天"></el-option>
+                      <el-option :value="2" label="每周"></el-option>
+                      <el-option :value="3" label="每月"></el-option>
+                    </el-select>
+                    <el-input-number v-model="limit[0].circle_count" :min="1"  label="描述文字"></el-input-number>
+件
+                  </el-radio>
+                </el-row>
+              </el-radio-group>
+            </div>
+          </el-form-item>
+
+          <!-- <el-form-item label="起售" :label-width="formLabelWidth">
+            商品至少
+            <el-input-number v-model="least"  @blur="least || (least = 1)"  controls-position="right"   :min="1" ></el-input-number>
+          </el-form-item> -->
+
           <el-form-item label="商品详情" :label-width="formLabelWidth">
-               <tinymce v-model="content" :height="300" />
+            <tinymce v-model="content" :height="300" />
           </el-form-item>
 
           <el-form-item label=" " :label-width="formLabelWidth">
             <el-button type="primary" @click="submitForm">提交</el-button>
           </el-form-item>
-
-          
         </el-form>
       </el-main>
     </el-container>
@@ -80,17 +133,19 @@
 <script>
 import cateSelecter from "@/views/cate/cateSelecter";
 import { getAttrs } from "@/api/cate";
-import {addGoods} from "@/api/goods";
-import {uploadImageUrl} from "@/api/upload";
-import Tinymce from '@/components/Tinymce';
+import { addGoods } from "@/api/goods";
+import { uploadImageUrl } from "@/api/upload";
+import Tinymce from "@/components/Tinymce";
 import spuComponent from "@/views/spu/index";
-import ImageSelector from "@/views/imageSelector"
-
+import ImageSelector from "@/views/imageSelector";
 
 export default {
   name: "AddGoods",
   components: {
-    cateSelecter,Tinymce,spuComponent,  ImageSelector
+    cateSelecter,
+    Tinymce,
+    spuComponent,
+    ImageSelector
   },
   data() {
     return {
@@ -98,22 +153,26 @@ export default {
       imageUrl: "",
       dialogImageUrl: "",
       dialogVisible: false,
-      mImage:[],
       uploadImageUrl,
-     
-      content:"",
-     
-      cateId:0,
-      price:0,
-      line_price:0,
-      count:0,
-      main_image:"",
-      main_image_full:null,
-      file_id:null,
-      title:"",
-
-      visibleImageSelector:false,
-      selectModel:1,
+      visibleImageSelector: false,
+      selectModel: 1,
+      limit_: null,
+      //表单数据
+      mImage: [],
+      content: "",
+      cateId: 0,
+      price: 0,
+      line_price: 0,
+      count: 0,
+      main_image: "",
+      main_image_full: null,
+      file_id: null,
+      title: "",
+      up_at: null,
+      status: 0,
+      up_status: 0,
+      least: 1,
+      limit: null
     };
   },
 
@@ -121,7 +180,20 @@ export default {
     cateAttrs() {
       let allAttrs = [];
       this.cateAttrs.forEach((val, index) => {});
-    }
+    },
+
+    // advance:{
+    //   deep:true,
+    //   handler(v){
+    //     if(v && v[0]){
+    //       if(v[0].count && v[0].count < this.least){
+    //         this.least = v[0].count;
+    //       }else if(v[0].circle_count && v[0].circle_count < this.least){
+    //         this.least = v[0].circle_count;
+    //       }
+    //     }
+    //   }
+    // }
   },
 
   computed: {
@@ -129,7 +201,9 @@ export default {
       return this.cateAttrs.reduce(function(total, curr) {
         return total + " " + curr.name;
       }, "");
-    }
+    },
+
+  
   },
 
   methods: {
@@ -139,7 +213,36 @@ export default {
     },
 
 
-     
+    onLimitChange(v) {
+      //限购
+      if (v) {
+        this.limit = [
+          {
+            type: 1,
+            count: null,
+            circle: 1,
+            circle_count:1,
+          }
+        ];
+      } else {
+        this.limit = null;
+      }
+    },
+
+    // onLeastBlur() {
+    //   this.least || (this.least = 1);
+    // },
+
+    onUpStatusChange(v) {
+      //上架方式变更
+      if (v === 3) {
+        this.status = 0;
+      } else {
+        this.status = v;
+
+        this.up_at = null;
+      }
+    },
 
     //添加规格项
     addSpec() {
@@ -156,13 +259,12 @@ export default {
       console.log(i);
       this.$delete(this.sku, i);
     },
-    removeImage( i) {
+    removeImage(i) {
       //移除图片
-        this.mImage.splice(i,1);
+      this.mImage.splice(i, 1);
     },
 
-   
-        handleSubmitImages(val) {
+    handleSubmitImages(val) {
       //主图选择
       console.log(val);
       if (val) {
@@ -171,25 +273,31 @@ export default {
           this.main_image = val[0].url;
           this.file_id = val[0].id;
         } else if (this.selectModel === 2) {
-          if(val.length + this.mImage.length < 10){
-          
-          val.forEach(v=>{
-            this.mImage.push({ file_id: v.id, url: v.url , url_full:v.url_full});
-          });
-       
-          }else{
-            this.$message({message:'图集不能超过9张',type:'error',duration:1000});
-          } 
+          if (val.length + this.mImage.length < 10) {
+            val.forEach(v => {
+              this.mImage.push({
+                file_id: v.id,
+                url: v.url,
+                url_full: v.url_full
+              });
+            });
+          } else {
+            this.$message({
+              message: "图集不能超过9张",
+              type: "error",
+              duration: 1000
+            });
           }
+        }
       }
     },
 
     //提交表单
-    submitForm(){
-      let t =this.$refs.spuComponent;
-      
+    submitForm() {
+      let t = this.$refs.spuComponent;
+
       let a = [];
-       if (t.cacheValidAttrs) {
+      if (t.cacheValidAttrs) {
         t.cacheValidAttrs.forEach(x => {
           let vals = [];
           x.values.forEach(v => {
@@ -209,34 +317,37 @@ export default {
       }
 
       let d = {
-        'title':this.title,
-        'main_image':this.main_image,
-        'mImage':this.mImage,
-        'cate_id' : this.cateId,
-         'price':this.price,
-         'line_price': this.line_price,
-         'file_id' : this.file_id,
-        'content':this.content,
-        'count':this.count,
-        'code' : '',
-        'how':1,
-        'sku':t.spu,
-        'spu':a,
+        title: this.title,
+        main_image: this.main_image,
+        mImage: this.mImage,
+        cate_id: this.cateId,
+        price: this.price,
+        line_price: this.line_price,
+        file_id: this.file_id,
+        content: this.content,
+        count: this.count,
+        code: "",
+        how: 1,
+        sku: t.spu,
+        spu: a,
+        up_at: this.up_at?this.up_at/1000:this.up_at,
+        status: this.status,
+        limit : this.limit
       };
-        
-      addGoods(d).then(resp=>{
-        if(resp.code === 0){
-          this.$message({
-            message: '添加成功',
-            type: 'success',
-            onClose:()=>{
-              this.$router.push('/goods/index');
-            }
-          });
-        }
-      }).catch(err=>{
 
-      });
+      addGoods(d)
+        .then(resp => {
+          if (resp.code === 0) {
+            this.$message({
+              message: "添加成功",
+              type: "success",
+              onClose: () => {
+                this.$router.push("/goods/index");
+              }
+            });
+          }
+        })
+        .catch(err => {});
     }
   }
 };
@@ -321,14 +432,11 @@ export default {
   border-left: 5px solid;
 }
 
-
-
-.mImage-item{
+.mImage-item {
   display: inline-block;
   position: relative;
-  margin-right:10px;
+  margin-right: 10px;
 }
-
 
 i.el-icon-close {
   position: absolute;
