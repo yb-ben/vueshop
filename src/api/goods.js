@@ -28,7 +28,7 @@ export function editGoods(data,params){
 
 
 export function goodsList(params){
-
+  
   return request({
     //url:'/vue-admin-template/goods/list',
     url: BASEURL + '/api/v1/admin/goods/list',
@@ -108,6 +108,18 @@ export function takeDown(data,params){
   return request({
 
       url:BASEURL+'/api/v1/admin/goods/takeDown',
+      method:'post',
+      data:{ids:data},
+      params
+  })
+}
+
+
+//删除
+export function batchDelete(data,params){
+  return request({
+
+      url:BASEURL+'/api/v1/admin/goods/delete',
       method:'post',
       data:{ids:data},
       params

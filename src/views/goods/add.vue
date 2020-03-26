@@ -156,7 +156,7 @@ export default {
       uploadImageUrl,
       visibleImageSelector: false,
       selectModel: 1,
-      limit_: null,
+  
       //表单数据
       mImage: [],
       content: "",
@@ -172,7 +172,8 @@ export default {
       status: 0,
       up_status: 0,
       least: 1,
-      limit: null
+      limit: null,
+      is_timing: 0,
     };
   },
 
@@ -237,9 +238,10 @@ export default {
       //上架方式变更
       if (v === 3) {
         this.status = 0;
+        this.is_timing = 1;
       } else {
         this.status = v;
-
+        this.is_timing = 0;
         this.up_at = null;
       }
     },
@@ -332,7 +334,8 @@ export default {
         spu: a,
         up_at: this.up_at?this.up_at/1000:this.up_at,
         status: this.status,
-        limit : this.limit
+        limit : this.limit,
+        is_timing: this.is_timing
       };
 
       addGoods(d)

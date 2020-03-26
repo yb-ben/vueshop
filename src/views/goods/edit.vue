@@ -167,7 +167,8 @@ export default {
       status: 0,
       up_status: 0,
       least: 1,
-      limit: null
+      limit: null,
+      is_timing:null
     };
   },
 
@@ -198,8 +199,9 @@ export default {
       this.mImage = d0.gallery;
       this.status = d0.status;
       this.up_at = d0.up_at?d0.up_at*1000:d0.up_at;
-      this.limit = d0.limit;
-      this.up_status = (d0.up_at && d0.status === 0)?3:d0.status
+      this.limit = d0.limit ;
+      this.is_timing = d0.is_timing;
+      this.up_status = d0.is_timing? 3 : d0.status;
     });
   },
 
@@ -243,9 +245,10 @@ export default {
       //上架方式变更
       if (v === 3) {
         this.status = 0;
+        this.is_timing = 1;
       } else {
         this.status = v;
-
+        this.is_timing = 0;
         this.up_at = null;
       }
     },
@@ -335,7 +338,8 @@ export default {
         spu: a,
         up_at: this.up_at?this.up_at/1000:this.up_at,
         status: this.status,
-        limit : this.limit
+        limit : this.limit,
+              is_timing: this.is_timing
       };
 
       editGoods(d)
