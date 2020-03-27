@@ -1,8 +1,9 @@
 import request from '@/utils/request'
+import {BASEURL} from './base'
 
 export function login(data) {
   return request({
-    url: '/vue-admin-template/user/login',
+    url: BASEURL + '/api/v1/admin/login',
     method: 'post',
     data
   })
@@ -10,9 +11,8 @@ export function login(data) {
 
 export function getInfo(token) {
   return request({
-    url: '/vue-admin-template/user/info',
+    url: BASEURL + '/api/v1/admin/info',
     method: 'get',
-    params: { token }
   })
 }
 
