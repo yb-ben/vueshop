@@ -71,7 +71,7 @@ service.interceptors.response.use(
     } else {
       let token = response.headers.authorization;
       if(token){
-        this.$store.dispatch('refreshToken');
+        store.dispatch('refreshToken');
       }
       return res
     }
