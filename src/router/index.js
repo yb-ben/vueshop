@@ -169,6 +169,20 @@ export const constantRoutes = [
         name: 'Cate',
         component: () => import('@/views/cate/index'),
         meta: { title: '分类管理', icon: 'form' }
+      },
+      {
+        path:'add',
+        name:'CateAdd',
+        component:()=>import('@/views/cate/add'),
+        meta:{title:'添加分类'},
+        hidden:true
+      },
+      {
+        path:'edit/:id',
+        name:'CateEdit',
+        component:()=>import('@/views/cate/edit'),
+        meta:{title:'编辑分类'},
+        hidden:true
       }
     ]
   },
@@ -177,14 +191,14 @@ export const constantRoutes = [
     path: '/goods',
     component: Layout,
     redirect: '/goods/index',
-    meta:{title: '商品管理', icon: 'form' },    
+    meta:{title: '商品管理', icon: 'form' },
     children: [
       {
         path: 'index',
         name: 'Goods',
         component:() => import('@/views/goods/index'),
-        meta:{title: '商品列表', icon: 'form' }, 
-       
+        meta:{title: '商品列表', icon: 'form' },
+
       },
       {
         path:'add',
@@ -201,8 +215,8 @@ export const constantRoutes = [
         meta:{title:'修改商品'}
       }
 
-     
-    
+
+
     ]
   },
 

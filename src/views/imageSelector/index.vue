@@ -6,7 +6,7 @@
       @close="onDialogClose"
       @closed="onClosed"
       title="图片选择"
-     
+      append-to-body
     >
       <div v-if="nowPage === 'imageUpload'" slot="title" class="header-title">
         <el-page-header @back="jumpToHome" content="图片选择"></el-page-header>
@@ -22,7 +22,7 @@
               </el-col>
             </el-row>
 
-            <el-row>
+            <el-row style="height: 300px;width: 100%">
               <div
                 style="display:inline-block;position:relative"
                 v-for="img in imageSet"
@@ -44,6 +44,7 @@
                 @prev-click="onPageChange"
                 @next-click="onPageChange"
                 @current-change="onPageChange"
+                style="position: absolute;bottom: 0"
               ></el-pagination>
             </el-row>
           </el-tab-pane>
@@ -106,7 +107,7 @@ export default {
       lastResp: null,
 
       sm: this.selectMode ,//1单选 2多选
-     
+
 
     };
   },
@@ -119,7 +120,7 @@ export default {
 
 
   watch: {
-    
+
     visibleSelector(val){
       this.dialogVisible = val;
     },
@@ -144,7 +145,7 @@ export default {
       console.log('dialogClose');
       this.jumpToHome();
       document.getElementsByTagName('body')[0].style.overflow = 'auto';
-  
+
     },
 
     onClosed() {
@@ -182,13 +183,13 @@ export default {
 
     onSelectImage(img) {
       //选中图片
-    
+
       if (this.sm === 1) {
         let t = this.imageSet.find(x => {
           return x.selected === true;
         });
         t && (this.$set(t,'selected',  false));
-       
+
        this.$set(img,'selected',true);
       } else if (this.sm === 2) {
         this.$set(img, "selected", !img.selected);
@@ -209,7 +210,7 @@ export default {
         }
       });
       this.$emit("submit-images", ret);
-     
+
       this.closeDialog();
     },
 

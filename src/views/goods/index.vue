@@ -69,7 +69,7 @@
 
           <el-table-column label="封面" width="100" align="center">
             <template v-slot="scope">
-              <el-image :src="scope.row.main_image_full" class="main_image"></el-image>
+              <el-image :src="scope.row.image_url" class="main_image"></el-image>
             </template>
           </el-table-column>
 
@@ -155,7 +155,7 @@ export default {
 
     handleClick(tab, event) {
        this.listLoading = true;
-      
+
       goodsList({page:this.paginate.page,limit:this.paginate.limit,status:this.paginate.status}).then(resp => {
         this.resp = resp.data;
         this.list = this.resp.data;
@@ -192,7 +192,7 @@ export default {
     //商品列表
     loadGoodsList() {
       this.listLoading = true;
-      
+
       goodsList(this.paginate).then(resp => {
         this.resp = resp.data;
         this.list = this.resp.data;

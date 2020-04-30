@@ -41,9 +41,9 @@
               </el-select>
               <i class="el-icon-close" @click="removeSpuValue(idx,i)"></i>
               <div class="d1" v-if="idx === 0 && isAddSPUImg">
-                <img v-if="s.path" :src="s.path_full" class="avatar1" @click="showImageUpload(s)" />
+                <img v-if="s.image_url" :src="s.image_url" class="avatar1" @click="showImageUpload(s)" />
                 <i
-                  v-if=" !s.path"
+                  v-if=" !s.image_url"
                   class="el-icon-plus avatar-uploader-icon1"
                   @click="showImageUpload(s)"
                 ></i>
@@ -175,8 +175,8 @@ export default {
     init() {
       //编辑下初始化
       attrs().then(resp => {
-          
-       
+
+
 
         let a = this.initResp.spu;
         a.forEach((x, i) => {
@@ -191,8 +191,8 @@ export default {
               this.$set(x, "allValues", r.data);
             });
           });
-          x.values[0].path && (this.isAddSPUImg = true);
-          
+          x.values[0].image_url && (this.isAddSPUImg = true);
+
 
          resp.data.forEach(v => {
             if (x.k_id === v.k_id) {
@@ -207,11 +207,11 @@ export default {
       }).then(res=>{
           this.getSpuArr();
       }).then(res =>{
-        
+
           this.spu.forEach(x=>{
               this.initResp.specs.forEach(v=>{
                   if(x._id === v.key){
-                   
+
                     this.$set(x,'price',v.price);
                     this.$set(x,'cast',v.cast);
                     this.$set(x,'weight',v.weight);
@@ -220,18 +220,18 @@ export default {
                     this.$set(x,'count',v.count);
                     this.$set(x,'sell',v.sell);
                     this.$set(x,'lock',v.lock);
-                    
+
                     return;
                   }
               });
-           
-          });  
-          
+
+          });
+
       });
     },
 
     onChangeIsAddSPUImg(){
-      
+
     },
 
     showImageUpload(v) {
@@ -244,9 +244,8 @@ export default {
       //接收图片选择数据
       console.log(val);
       if (val && val.length > 0) {
-        this.tmpPointer.path_full = val[0].url_full;
-        this.tmpPointer.path = val[0].url;
-        this.tmpPointer.file_id = val[0].id;
+        this.tmpPointer.image_url = val[0].url_full;
+        this.tmpPointer.image_id = val[0].id;
         this.$forceUpdate();
       }
     },
@@ -480,7 +479,7 @@ export default {
       this.cacheValidAttrs = validAttrs;
       this.vlenArr = lenArr;
       this.spu = ret;
-     
+
     },
 
     arraySpanMethod({ row, column, rowIndex, columnIndex }) {
@@ -513,10 +512,10 @@ export default {
         $obj["k" + c + "_id"] = tt.k_id;
         $obj["v" + c] = t[i].v;
         $obj["v" + c + "_id"] = t[i].v_id;
-        
+
         a  =  $key +"k" + tt.k_id + "v" + t[i].v_id;
         if (c < $height) {
-           
+
           this.foo(
             $arr,
             $currHeight + 1,
@@ -540,7 +539,7 @@ export default {
             b.id = m.id;
           }
           b._id = a;
-             
+
           $save.push(b);
         }
       }

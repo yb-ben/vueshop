@@ -17,11 +17,10 @@
       </el-aside>
       <el-main>
 
-      
+
         <div style="margin-bottom:30px">
           <el-button type="primary" @click="onAddCategoryClick">添加分类</el-button>
 
-          <cateForm :message="msg" ref="cateForm"></cateForm>
         </div>
 
         <el-table :data="currentList">
@@ -29,15 +28,14 @@
           <el-table-column label="分类名" prop="name" width="180"></el-table-column>
           <el-table-column prop="attr" width="300" label="属性">
             <template v-slot="scope">
-              <el-tag v-for="a in scope.row.attr" :key="a.id" type="primary">
-                {{ a.name }}
-                </el-tag>
+              <el-image style="width: 50px;height: 50px" :src="scope.row.image?scope.row.image.url_full:''">
+              </el-image>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="100">
             <template v-slot="scope">
               <el-button @click="handleClick(scope.row)" type="text" size="small">删除</el-button>
-              <el-button type="text" size="small">编辑</el-button>
+              <el-button @click="onCateEdit(scope.row)" type="text" size="small">编辑</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -48,13 +46,9 @@
 
 <script>
 import { getCateList } from "@/api/cate";
-import  cateForm  from "./cateForm";
 
 //let id = 1000;
 export default {
-  components:{
-     cateForm
-  },
 
   data() {
     return {
@@ -68,21 +62,8 @@ export default {
       listLoading: true,
 
       currentList: [],
-      msg:{
-        first:[],second:[],dialogFormVisible:false
-      },
-    //   dialogFormVisible: false,
-      
-    //   first: [],
-    //    second: [],
-    //  form: {
-    //     name: "",
-    //     sort: 10000,
-    //     currFirstId:'',
-    //     currSecondId:'',
-    //     status: true
-    //   },
-    //   formLabelWidth: "120px"
+
+
     };
   },
   watch: {
@@ -97,6 +78,7 @@ export default {
   },
 
   methods: {
+
     filterNode(value, data) {
       if (!value) return true;
       return data.label.indexOf(value) !== -1;
@@ -108,6 +90,7 @@ export default {
           .then(resp => {
             this.cateList = resp.data;
             this.listLoading = false;
+            this.currentList = resp.data;
           })
           .catch(error => {
             console.log(error);
@@ -117,53 +100,21 @@ export default {
 
     onTreeNodeClick(data, node, elem) {
       if (data.children) {
-        this.currentList = data.children;
+        this.currentList = [data,...data.children];
       }else{
         this.currentList = [data];
       }
     },
 
+      //添加分类
     onAddCategoryClick(){
-      
-      // if(!this.msg){
-      //   this.msg = {first:[],second:[]};
-      // }
-      
-        if(this.msg.first && this.msg.first.length === 0){
-          this.cateList.forEach((value,index)=>{
-            this.msg.first.push(value);
-          });
-      }
-      this.$refs.cateForm.showDialog();
+      this.$router.push({name:'CateAdd'})
     },
+    //编辑分类
+      onCateEdit(val){
+        this.$router.push({name:'CateEdit',params:{id:val.id}})
+      }
 
-    // onFirstCateChange(val){
-    //   this.first.forEach((value,index)=>{
-    //     if(value.id === val){
-    //       if(value.children && value.children.length >0){
-    //         this.second = value.children;
-    //         this.form.currSecondId = value.children[0].id
-    //       }else{
-    //         this.second = [];
-    //       }
-    //     }
-    //   });
-    // },
-
-    // onFirstCateClear(){
-    //   this.form.currSecondId = '';
-    //   this.second = [];
-    // },
-
-  
-    // onAddFormSubmit(){
-    //   addCate(this.form).then(resp=>{
-    //     console.log(resp);
-    //     this.dialogFormVisible = false;
-    //   }).catch(err=>{
-
-    //   })
-    // },
 
   }
 };
