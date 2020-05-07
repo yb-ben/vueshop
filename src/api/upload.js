@@ -2,20 +2,19 @@ import request from '@/utils/request'
 
 import {BASEURL} from './base'
 
+export const UPLOADURL = BASEURL+'/api/v1/admin/upload/uploadImage';
+
+
 export function uploadImage(data,params){
 
   return request({
-    
-    url: BASEURL + '/api/v1/admin/upload/uploadImage',
+
+    url: UPLOADURL,
     method: 'post',
     data,
-    params    
+    params
   })
 }
-
-export const uploadImageUrl =  BASEURL + '/api/v1/admin/upload/uploadImage';
-
-
 export function imageList(params){
   return request({
     url:BASEURL + '/api/v1/admin/upload/imageList',
